@@ -184,15 +184,12 @@ class AsyncAgentRuntime:
         # This is synchronous for now, matching the original implementation
         guideline_path = self.agent.path_manager.agent_root / "guideline.md"
         context_path = self.agent.path_manager.agent_root / self.agent.context_file
-        workspace_structure_path = self.agent.path_manager.agent_root / "workspace_structure.md"
 
         guideline = guideline_path.read_text(encoding="utf-8") if guideline_path.exists() else ""
         context = context_path.read_text(encoding="utf-8") if context_path.exists() else ""
-        structure = (
-            workspace_structure_path.read_text(encoding="utf-8")
-            if workspace_structure_path.exists()
-            else ""
-        )
+
+        # 自动生成文件系统结构
+        structure = self._generate_directory_structure()
 
         return self._build_system_prompt(guideline, context, structure)
 
@@ -224,6 +221,63 @@ class AsyncAgentRuntime:
 当需要使用工具时，请直接调用相应的工具。系统会自动处理工具调用和结果返回。
 """
         return system_prompt
+
+    def _generate_directory_structure(self, max_depth: int = 10) -> str:
+        """生成完整的目录树结构"""
+        lines = ["```"]
+        lines.append("/")
+
+        def walk_directory(path, prefix="", depth=0, is_last_parent=True):
+            if depth >= max_depth:
+                return
+
+            try:
+                # 获取并排序目录内容：先目录后文件
+                items = sorted(path.iterdir(), key=lambda x: (not x.is_dir(), x.name.lower()))
+
+                for i, item in enumerate(items):
+                    is_last = i == len(items) - 1
+
+                    # 确定前缀
+                    if depth == 0:
+                        current_prefix = "└── " if is_last else "├── "
+                        next_prefix = "    " if is_last else "│   "
+                    else:
+                        current_prefix = "└── " if is_last else "├── "
+                        next_prefix = prefix + ("    " if is_last else "│   ")
+
+                    # 跳过一些系统文件
+                    if item.name in [".DS_Store", "__pycache__", ".git", ".gitkeep"]:
+                        continue
+
+                    if item.is_dir():
+                        # 目录显示
+                        lines.append(f"{prefix}{current_prefix}{item.name}/")
+                        # 递归处理子目录
+                        walk_directory(item, next_prefix, depth + 1, is_last)
+                    else:
+                        # 文件显示，包含大小信息
+                        try:
+                            size = item.stat().st_size
+                            if size < 1024:
+                                size_str = f" ({size}B)"
+                            elif size < 1024 * 1024:
+                                size_str = f" ({size / 1024:.1f}KB)"
+                            else:
+                                size_str = f" ({size / 1024 / 1024:.1f}MB)"
+                        except Exception:
+                            size_str = ""
+
+                        lines.append(f"{prefix}{current_prefix}{item.name}{size_str}")
+
+            except Exception as e:
+                lines.append(f"{prefix}[Error: {e}]")
+
+        # 从 agent_root 开始遍历
+        walk_directory(self.agent.path_manager.agent_root)
+        lines.append("```")
+
+        return "\n".join(lines)
 
     async def create_event(
         self,

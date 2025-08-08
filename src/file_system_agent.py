@@ -97,10 +97,32 @@ class FileSystemAgent:
             context_path = self.path_manager.agent_root / self.context_file
             if context_path.exists():
                 old_context = context_path.read_text(encoding="utf-8")
-                # 可以选择归档旧的 context
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+                # 从旧 context 中提取任务信息作为文件名
+                task_name = "untitled"
+                for line in old_context.split("\n"):
+                    if line.startswith("# Current Task"):
+                        # 获取下一行作为任务名
+                        lines = old_context.split("\n")
+                        idx = lines.index(line)
+                        if idx + 1 < len(lines) and lines[idx + 1].strip():
+                            # 清理任务名，只保留字母数字和中文
+                            import re
+
+                            task_line = lines[idx + 1].strip()
+                            # 移除特殊字符，保留字母、数字、中文、空格、下划线
+                            task_name = re.sub(r"[^\w\s一-龥-]", "", task_line)
+                            task_name = task_name.replace(" ", "_")[:50]  # 限制长度
+                            if not task_name:
+                                task_name = "untitled"
+                        break
+
+                # 使用更友好的时间格式
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+                archive_filename = f"{task_name}_{timestamp}.md"
+
                 archive_path = (
-                    self.path_manager.agent_root / "storage" / "history" / f"context_{timestamp}.md"
+                    self.path_manager.agent_root / "storage" / "history" / archive_filename
                 )
                 archive_path.parent.mkdir(parents=True, exist_ok=True)
                 archive_path.write_text(old_context, encoding="utf-8")

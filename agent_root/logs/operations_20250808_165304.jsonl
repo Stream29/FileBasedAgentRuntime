@@ -1,0 +1,1 @@
+{"timestamp": "2025-08-08T16:53:04.539153", "operation": "sync_context", "params": {"new_context_size": 185, "history_cleared": 1, "archive_path": "/Users/stream/ACodeSpace/demo/FileSystemBasedAgent/agent_root/agent_root/storage/history/等待任务_20250808_1653.md"}, "result": "Context synchronized successfully", "error": null, "success": true}
