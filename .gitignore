@@ -1,2 +1,12 @@
 .idea
 .venv
+__pycache__/
+*.pyc
+.DS_Store
+.vscode/
+.env
+logs/*.log
+logs/*.jsonl
+agent_root/storage/history/
+agent_root/workspace/*
+!agent_root/workspace/.gitkeep
