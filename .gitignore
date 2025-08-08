@@ -10,3 +10,4 @@ logs/*.jsonl
 agent_root/storage/history/
 agent_root/workspace/*
 !agent_root/workspace/.gitkeep
+*.egg-info
