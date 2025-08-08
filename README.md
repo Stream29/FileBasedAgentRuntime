@@ -153,6 +153,48 @@ uv run pytest
 3. 每 3-5 个操作后会自动提醒 sync_context
 4. 所有操作都有详细日志，便于调试和监控
 
+## 开发指南
+
+### 代码质量检查
+
+项目使用 ruff 和 mypy 进行代码质量检查：
+
+```bash
+# 运行所有检查
+make check
+# 或
+python check.py
+
+# 自动修复代码风格问题
+make format
+
+# 单独运行 linting
+make lint
+
+# 单独运行类型检查
+make type
+```
+
+### 开发工作流程
+
+1. 修改代码前，确保所有检查通过
+2. 修改代码后，运行 `make format` 格式化代码
+3. 运行 `make check` 确保没有引入新问题
+4. 提交代码前，再次运行所有检查
+
+### Makefile 命令
+
+```bash
+make help     # 查看所有可用命令
+make install  # 安装依赖
+make check    # 运行所有代码检查
+make format   # 自动格式化代码
+make lint     # 运行 linting 检查
+make type     # 运行类型检查
+make run      # 运行 Agent
+make clean    # 清理临时文件
+```
+
 ## License
 
 MIT

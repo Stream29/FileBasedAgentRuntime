@@ -1,9 +1,8 @@
 """Core FileSystemAgent implementation without LangChain dependencies."""
 
-import json
-from pathlib import Path
 from datetime import datetime
-from typing import Dict, Any, List
+from pathlib import Path
+from typing import Any
 
 from .logger import OperationLogger
 from .path_manager import PathManager
@@ -12,121 +11,131 @@ from .tools import ObservableTools
 
 class FileSystemAgent:
     """基于文件系统的 Agent 实现"""
-    
+
     def __init__(self, agent_id: str, context_file: str, project_root: Path):
         self.agent_id = agent_id
         self.context_file = context_file
-        
+
         # 初始化组件
         self.path_manager = PathManager(project_root)
         self.logger = OperationLogger(project_root / "logs")
         self.tools = ObservableTools(self.logger, self.path_manager)
-        
+
         # 对话历史（临时缓冲，直到 sync_context）
-        self.conversation_history: List[Dict[str, Any]] = []
-        
+        self.conversation_history: list[dict[str, Any]] = []
+
         # 确保必要文件存在
         self._ensure_files_exist()
-        
-    def _ensure_files_exist(self):
+
+    def _ensure_files_exist(self) -> None:
         """确保 guideline.md 和 context_window.md 存在"""
         guideline_path = self.path_manager.agent_root / "guideline.md"
         context_path = self.path_manager.agent_root / self.context_file
-        
+
         if not guideline_path.exists():
-            guideline_path.write_text(self._get_default_guideline(), encoding='utf-8')
-            
+            guideline_path.write_text(self._get_default_guideline(), encoding="utf-8")
+
         if not context_path.exists():
-            context_path.write_text(self._get_default_context(), encoding='utf-8')
-            
-    def execute_tool(self, tool_name: str, params: Dict[str, Any]) -> Any:
+            context_path.write_text(self._get_default_context(), encoding="utf-8")
+
+    def execute_tool(self, tool_name: str, params: dict[str, Any]) -> Any:
         """执行工具调用"""
         # 记录工具调用
-        self.conversation_history.append({
-            'type': 'tool_call',
-            'tool': tool_name,
-            'params': params,
-            'timestamp': datetime.now().isoformat()
-        })
-        
+        self.conversation_history.append(
+            {
+                "type": "tool_call",
+                "tool": tool_name,
+                "params": params,
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
+
         # 工具映射
         tool_mapping = {
-            'read_file': self.tools.read_file,
-            'write_file': self.tools.write_file,
-            'list_directory': self.tools.list_directory,
-            'execute_command': self.tools.execute_command,
-            'sync_context': self._sync_context
+            "read_file": self.tools.read_file,
+            "write_file": self.tools.write_file,
+            "list_directory": self.tools.list_directory,
+            "execute_command": self.tools.execute_command,
+            "sync_context": self._sync_context,
         }
-        
+
         if tool_name not in tool_mapping:
             raise ValueError(f"Unknown tool: {tool_name}")
-            
+
         # 执行工具
         try:
             result = tool_mapping[tool_name](**params)
-            
+
             # 记录结果
-            self.conversation_history.append({
-                'type': 'tool_result',
-                'tool': tool_name,
-                'result': self._truncate_result(result),
-                'timestamp': datetime.now().isoformat()
-            })
-            
+            self.conversation_history.append(
+                {
+                    "type": "tool_result",
+                    "tool": tool_name,
+                    "result": self._truncate_result(result),
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
+
             return result
-            
+
         except Exception as e:
             # 记录错误
-            self.conversation_history.append({
-                'type': 'tool_error',
-                'tool': tool_name,
-                'error': str(e),
-                'timestamp': datetime.now().isoformat()
-            })
+            self.conversation_history.append(
+                {
+                    "type": "tool_error",
+                    "tool": tool_name,
+                    "error": str(e),
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
             raise
-            
-    def _sync_context(self, new_context_content: str) -> Dict[str, Any]:
+
+    def _sync_context(self, new_context_content: str) -> dict[str, Any]:
         """同步对话历史到 context window - 由模型决定新的 context 内容"""
         try:
             # 保存旧的 context 作为备份（可选）
             context_path = self.path_manager.agent_root / self.context_file
             if context_path.exists():
-                old_context = context_path.read_text(encoding='utf-8')
+                old_context = context_path.read_text(encoding="utf-8")
                 # 可以选择归档旧的 context
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                archive_path = self.path_manager.agent_root / "storage" / "history" / f"context_{timestamp}.md"
+                archive_path = (
+                    self.path_manager.agent_root / "storage" / "history" / f"context_{timestamp}.md"
+                )
                 archive_path.parent.mkdir(parents=True, exist_ok=True)
-                archive_path.write_text(old_context, encoding='utf-8')
-            
+                archive_path.write_text(old_context, encoding="utf-8")
+
             # 写入新的 context
-            context_path.write_text(new_context_content, encoding='utf-8')
-            
+            context_path.write_text(new_context_content, encoding="utf-8")
+
             # 记录操作历史条数（用于返回信息）
             history_count = len(self.conversation_history)
-            
+
             # 清空对话历史
             self.conversation_history = []
-            
+
             # 记录操作
-            self.logger.log_operation('sync_context', {
-                'new_context_size': len(new_context_content),
-                'history_cleared': history_count,
-                'archive_path': str(archive_path) if 'archive_path' in locals() else None
-            }, "Context synchronized successfully")
-            
+            self.logger.log_operation(
+                "sync_context",
+                {
+                    "new_context_size": len(new_context_content),
+                    "history_cleared": history_count,
+                    "archive_path": str(archive_path) if "archive_path" in locals() else None,
+                },
+                "Context synchronized successfully",
+            )
+
             return {
-                'status': 'success',
-                'message': f'Context 已更新，清空了 {history_count} 条对话历史',
-                'new_context_lines': len(new_context_content.splitlines()),
-                'archive_path': str(archive_path.name) if 'archive_path' in locals() else None
+                "status": "success",
+                "message": f"Context 已更新，清空了 {history_count} 条对话历史",
+                "new_context_lines": len(new_context_content.splitlines()),
+                "archive_path": str(archive_path.name) if "archive_path" in locals() else None,
             }
-            
+
         except Exception as e:
-            self.logger.log_operation('sync_context', 
-                                    {'error': str(e)}, 
-                                    None, str(e))
+            self.logger.log_operation("sync_context", {"error": str(e)}, None, str(e))
             raise
-        
+
     def _truncate_result(self, result: Any) -> Any:
         """截断结果避免对话历史过大"""
         if isinstance(result, str) and len(result) > 500:
@@ -140,7 +149,7 @@ class FileSystemAgent:
         elif isinstance(result, list) and len(str(result)) > 500:
             return f"[List with {len(result)} items]"
         return result
-        
+
     def _get_default_guideline(self) -> str:
         """获取默认的 guideline 内容"""
         return """# Agent 行为准则
@@ -263,7 +272,7 @@ class FileSystemAgent:
 - 你没有传统的对话历史，一切都通过文件系统持久化
 - 通过 sync_context 主动管理你的记忆
 - 保持专业、高效、安全的工作方式"""
-        
+
     def _get_default_context(self) -> str:
         """获取默认的 context window 内容"""
         return """# Current Task
