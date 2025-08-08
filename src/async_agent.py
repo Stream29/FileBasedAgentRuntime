@@ -381,21 +381,21 @@ class AsyncAgentRuntime:
 
                 if content_block_type == ContentType.Text:
                     content_block: TextBlock = chunk.content_block
+                    # 只创建事件，不立即输出，等待增量内容
                     current_event = await self.create_event(
                         role=Role.Assistant,
                         event_type=EventType.Message,
-                        content=TextContent(text=content_block.text),
+                        content=TextContent(text=""),  # 初始为空
                     )
-                    yield current_event
 
                 elif content_block_type == ContentType.Thinking:
                     content_block: ThinkingBlock = chunk.content_block
+                    # 只创建事件，不立即输出
                     current_event = await self.create_event(
                         role=Role.Assistant,
                         event_type=EventType.Thinking,
-                        content=ThinkingContent(thinking=content_block.thinking),
+                        content=ThinkingContent(thinking=""),  # 初始为空
                     )
-                    yield current_event
 
                 elif content_block_type == ContentType.ToolUse:
                     content_block: ToolUseBlock = chunk.content_block
@@ -417,15 +417,29 @@ class AsyncAgentRuntime:
 
                 if content_block_type == ContentDeltaType.Text:
                     delta: TextDelta = chunk.delta
+                    # 只输出增量文本，不累积
+                    delta_event = await self.create_event(
+                        role=Role.Assistant,
+                        event_type=EventType.Message,
+                        content=TextContent(text=delta.text)
+                    )
+                    yield delta_event
+                    # 累积到当前事件中，用于后续处理
                     if current_event and isinstance(current_event.content, TextContent):
                         current_event.content.text += delta.text
-                        yield current_event
 
                 elif content_block_type == ContentDeltaType.Thinking:
                     delta: ThinkingDelta = chunk.delta
+                    # 只输出增量思考内容
+                    delta_event = await self.create_event(
+                        role=Role.Assistant,
+                        event_type=EventType.Thinking,
+                        content=ThinkingContent(thinking=delta.thinking)
+                    )
+                    yield delta_event
+                    # 累积到当前事件中
                     if current_event and isinstance(current_event.content, ThinkingContent):
                         current_event.content.thinking += delta.thinking
-                        yield current_event
 
                 elif content_block_type == ContentDeltaType.InputJson:
                     delta: InputJsonDelta = chunk.delta
@@ -444,26 +458,27 @@ class AsyncAgentRuntime:
                             )
                             yield current_event
 
-            if chunk_type == ChunkType.ContentBlockStop:
-                if (
-                    current_event
-                    and current_event.type == EventType.ToolUse
-                    and isinstance(current_event.content, list)
-                    and current_event.content
-                ):
-                    tool_use_content = current_event.content[-1]
-                    if isinstance(tool_use_content, ToolUseContent):
-                        # Parse JSON input
-                        if isinstance(tool_use_content.input, str):
-                            try:
-                                tool_use_content.input = json.loads(tool_use_content.input)
-                            except json.JSONDecodeError:
-                                self.agent.logger.logger.warning(
-                                    f"Invalid JSON in tool input: {tool_use_content.input}"
-                                )
-                                tool_use_content.input = {"INVALID_JSON": tool_use_content.input}
-                        tool_uses.append(tool_use_content)
-                yield current_event
+            if (
+                chunk_type == ChunkType.ContentBlockStop
+                and current_event
+                and current_event.type == EventType.ToolUse
+                and isinstance(current_event.content, list)
+                and current_event.content
+            ):
+                tool_use_content = current_event.content[-1]
+                if isinstance(tool_use_content, ToolUseContent):
+                    # Parse JSON input
+                    if isinstance(tool_use_content.input, str):
+                        try:
+                            tool_use_content.input = json.loads(tool_use_content.input)
+                        except json.JSONDecodeError:
+                            self.agent.logger.logger.warning(
+                                f"Invalid JSON in tool input: {tool_use_content.input}"
+                            )
+                            tool_use_content.input = {"INVALID_JSON": tool_use_content.input}
+                    tool_uses.append(tool_use_content)
+                yield current_event  # 只对工具调用输出最终事件
+            # 对于文本和思考内容，不在 ContentBlockStop 时输出，避免重复
 
             if chunk_type == ChunkType.MessageDelta:
                 stop_reason = chunk.delta.stop_reason

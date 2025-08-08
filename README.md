@@ -9,7 +9,7 @@
 - **冷热数据分离**：自动归档历史到 storage
 - **完全可观测**：所有操作都有详细日志记录
 - **sync_context 机制**：优雅解决记忆更新的递归依赖问题
-- **流式响应**：实时输出文本和工具调用，提供更好的交互体验
+- **增量流式响应**：实时输出文本和工具调用，每次只显示新增内容，提供自然的交互体验
 - **异步架构**：高性能处理，支持并发操作
 - **直接 API 调用**：使用官方 Anthropic SDK，获得更精细的控制
 - **思考模式支持**：支持 Claude 的思考功能（需要 API 权限）
@@ -38,7 +38,8 @@ FileSystemBasedAgent/
 │   ├── guideline.md        # Agent 行为准则
 │   └── context_window_main.md # 工作记忆
 ├── logs/                    # 操作日志
-└── src/                     # 源代码
+├── src/                     # 源代码
+└── main.py                  # 主程序入口
 ```
 
 ## 快速开始
@@ -75,11 +76,11 @@ export ANTHROPIC_API_BASE=https://api.anthropic.com  # 可选
 
 启动交互式模式：
 ```bash
-# 方式一：直接运行模块
-uv run python -m src.main
+# 方式一：直接运行 main.py
+python main.py
 
-# 方式二：使用命令别名（需要先 uv sync）
-uv run fsagent
+# 方式二：使用 uv 运行（推荐，确保使用正确的环境）
+uv run python main.py
 ```
 
 ## 使用示例
