@@ -13,6 +13,7 @@
 - **异步架构**：高性能处理，支持并发操作
 - **直接 API 调用**：使用官方 Anthropic SDK，获得更精细的控制
 - **思考模式支持**：支持 Claude 的思考功能（需要 API 权限）
+- **持久化 Shell 会话**：支持复合命令、管道、状态保持的真实 Shell 环境
 
 ## 系统架构
 
@@ -126,13 +127,33 @@ uv run python main.py
 
 ## 工具说明
 
-Agent 可以使用以下工具：
+Agent 使用命令行优先的工具系统：
+
+### 主要工具
+
+1. **shell** - 持久化 Shell 会话（优先使用）
+   - 支持所有标准命令：ls, cat, grep, sed, awk, python, git 等
+   - 保持会话状态：别名、函数、变量、工作目录
+   - 支持复合命令：`cd dir && ls`、管道、重定向
+   - 自动处理交互式命令（检测并中断）
+
+2. **edit_file** - 编辑文件特定行
+   - 用于修改大文件的部分内容
+   - 指定行号范围进行精确编辑
+
+3. **create_file** - 创建新文件
+   - 用于创建包含大量内容的文件
+
+4. **sync_context** - 同步工作记忆
+   - Agent 自主管理 context window
+   - 决定保留哪些信息（热数据）和归档哪些（冷数据）
+
+### 传统工具（向后兼容）
 
 - `read_file(path, start_line?, end_line?)` - 读取文件
 - `write_file(path, content)` - 写入文件
 - `list_directory(path)` - 列出目录
 - `execute_command(command, working_dir?)` - 执行命令
-- `sync_context()` - 同步记忆（重要！）
 
 ## 开发测试
 

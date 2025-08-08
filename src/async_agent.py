@@ -25,6 +25,7 @@ from .entities import (
     Usage,
 )
 from .file_system_agent import FileSystemAgent
+from .tools_registry import ToolsRegistry
 
 
 class ChunkType(str):
@@ -73,105 +74,8 @@ class AsyncAgentRuntime:
 
     def _format_tools(self) -> list[dict[str, Any]]:
         """Convert tools to Claude API format"""
-        # Define our tools with their schemas
-        tool_definitions = [
-            {
-                "name": "read_file",
-                "description": (
-                    "Read the contents of a file. Use agent-perspective paths "
-                    "like /workspace/file.txt"
-                ),
-                "input_schema": {
-                    "type": "object",
-                    "properties": {
-                        "path": {
-                            "type": "string",
-                            "description": (
-                                "The file path from agent's perspective (e.g., /workspace/file.txt)"
-                            ),
-                        },
-                        "start_line": {
-                            "type": "integer",
-                            "description": "Start line number (1-indexed, optional)",
-                        },
-                        "end_line": {
-                            "type": "integer",
-                            "description": "End line number (inclusive, optional)",
-                        },
-                    },
-                    "required": ["path"],
-                },
-            },
-            {
-                "name": "write_file",
-                "description": "Write content to a file. Creates the file if it doesn't exist.",
-                "input_schema": {
-                    "type": "object",
-                    "properties": {
-                        "path": {
-                            "type": "string",
-                            "description": "The file path from agent's perspective",
-                        },
-                        "content": {"type": "string", "description": "The content to write"},
-                    },
-                    "required": ["path", "content"],
-                },
-            },
-            {
-                "name": "list_directory",
-                "description": "List contents of a directory",
-                "input_schema": {
-                    "type": "object",
-                    "properties": {
-                        "path": {
-                            "type": "string",
-                            "description": "The directory path from agent's perspective",
-                        }
-                    },
-                    "required": ["path"],
-                },
-            },
-            {
-                "name": "execute_command",
-                "description": "Execute a shell command",
-                "input_schema": {
-                    "type": "object",
-                    "properties": {
-                        "command": {
-                            "type": "string",
-                            "description": "The shell command to execute",
-                        },
-                        "working_dir": {
-                            "type": "string",
-                            "description": "Working directory (optional, defaults to /workspace)",
-                        },
-                    },
-                    "required": ["command"],
-                },
-            },
-            {
-                "name": "sync_context",
-                "description": (
-                    "更新 context window 并清空临时对话历史。你需要全量生成新的 context 内容，"
-                    "包括任务状态、工作记忆、观察结果等。"
-                ),
-                "input_schema": {
-                    "type": "object",
-                    "properties": {
-                        "new_context_content": {
-                            "type": "string",
-                            "description": (
-                                "新的 context window 完整内容，应包含 Current Task、"
-                                "Working Memory、Active Observations、Next Steps 等部分"
-                            ),
-                        }
-                    },
-                    "required": ["new_context_content"],
-                },
-            },
-        ]
-
-        return tool_definitions
+        # 从统一的工具注册中心获取工具定义
+        return ToolsRegistry.get_all_tools()
 
     def _build_request_params(self) -> dict[str, Any]:
         """Build request parameters"""
@@ -205,17 +109,18 @@ class AsyncAgentRuntime:
 {structure}
 
 # 工具使用说明
-你可以使用以下工具来完成任务：
-- read_file: 读取文件内容
-- write_file: 写入或创建文件
-- list_directory: 列出目录内容
-- execute_command: 执行 shell 命令
-- sync_context: 更新你的工作记忆（需要提供完整的新 context 内容）
+你可以使用以下工具：
+1. shell - 执行命令行工具（优先使用）
+   - 支持 ls, cat, grep, sed, awk, python, git, curl 等
+   - Shell 会话保持状态，cd 会改变目录
+2. edit_file - 编辑文件的特定行（用于大文件）
+3. create_file - 创建包含大量内容的新文件
+4. sync_context - 更新你的工作记忆
 
 # 重要提醒
-1. 调用 sync_context 时，你需要全量生成新的 context window 内容
-2. 包括 Current Task、Working Memory、Active Observations、Next Steps 等部分
-3. 自己决定什么信息该保留（热数据）和什么该归档（冷数据）
+1. 优先使用 shell 命令解决问题
+2. 所有路径都是真实路径，相对于 {self.agent.path_manager.agent_root}
+3. 调用 sync_context 时需要提供完整的新 context 内容
 4. 每 3-5 个操作后同步一次，保持 context 精简而完整
 
 当需要使用工具时，请直接调用相应的工具。系统会自动处理工具调用和结果返回。

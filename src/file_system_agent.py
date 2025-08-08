@@ -4,8 +4,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .file_editor import FileEditor
 from .logger import OperationLogger
 from .path_manager import PathManager
+from .stateful_shell import StatefulShell
 from .tools import ObservableTools
 
 
@@ -20,6 +22,10 @@ class FileSystemAgent:
         self.path_manager = PathManager(project_root)
         self.logger = OperationLogger(project_root / "logs")
         self.tools = ObservableTools(self.logger, self.path_manager)
+
+        # 初始化新工具系统
+        self.stateful_shell = StatefulShell(self.path_manager.agent_root, self.logger)
+        self.file_editor = FileEditor(self.path_manager.agent_root, self.logger)
 
         # 对话历史（临时缓冲，直到 sync_context）
         self.conversation_history: list[dict[str, Any]] = []
@@ -50,21 +56,36 @@ class FileSystemAgent:
             }
         )
 
-        # 工具映射
-        tool_mapping = {
-            "read_file": self.tools.read_file,
-            "write_file": self.tools.write_file,
-            "list_directory": self.tools.list_directory,
-            "execute_command": self.tools.execute_command,
-            "sync_context": self._sync_context,
-        }
-
-        if tool_name not in tool_mapping:
-            raise ValueError(f"Unknown tool: {tool_name}")
-
         # 执行工具
         try:
-            result = tool_mapping[tool_name](**params)
+            if tool_name == "shell":
+                # 使用同步版本的 shell 执行
+                result = self.stateful_shell.execute_sync(params["command"])
+            elif tool_name == "edit_file":
+                result = self.file_editor.edit_file(
+                    params["path"],
+                    params["start_line"],
+                    params["end_line"],
+                    params["new_content"]
+                )
+            elif tool_name == "create_file":
+                result = self.file_editor.create_file(
+                    params["path"],
+                    params["content"]
+                )
+            elif tool_name == "sync_context":
+                result = self._sync_context(params["new_context_content"])
+            # 保留兼容性 - 旧工具仍然可用
+            elif tool_name == "read_file":
+                result = self.tools.read_file(**params)
+            elif tool_name == "write_file":
+                result = self.tools.write_file(**params)
+            elif tool_name == "list_directory":
+                result = self.tools.list_directory(**params)
+            elif tool_name == "execute_command":
+                result = self.tools.execute_command(**params)
+            else:
+                raise ValueError(f"Unknown tool: {tool_name}")
 
             # 记录结果
             self.conversation_history.append(

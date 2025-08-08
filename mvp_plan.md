@@ -1456,3 +1456,51 @@ MVP 验证成功后，可以考虑：
 2. **异步模式**（推荐）：通过 `AsyncAgentRuntime`
 
 主程序已自动切换到异步模式，提供更好的交互体验。
+
+## 14. 持久化 Shell 会话（已实现）
+
+### 背景
+原始的 `StatefulShell` 实现存在严重问题：
+- 每个命令都在新进程中执行，无法保持状态
+- 别名、函数、shell 选项等无法在命令间保持
+- 手动维护的状态（cd、环境变量）不够完整
+- 无法处理交互式命令
+
+### 实现方案
+使用 `pexpect` 库实现真正的持久化 Shell 会话：
+
+1. **核心组件**
+   - `src/persistent_shell.py`: 持久化 Shell 实现
+   - `PersistentShell`: 同步版本，使用 pexpect 管理 bash 进程
+   - `AsyncPersistentShell`: 异步包装器
+
+2. **主要特性**
+   - **真正的状态保持**：别名、函数、变量、工作目录都能持久
+   - **支持复杂 Shell 特性**：管道、重定向、复合命令、作业控制
+   - **交互式命令处理**：自动检测并中断交互式命令
+   - **合理的超时机制**：超时发送 Ctrl+C 而非终止进程
+
+3. **实现细节**
+   ```python
+   # 使用 pexpect 启动持久进程
+   self.shell = pexpect.spawn('/bin/bash', ...)
+   
+   # 发送命令并等待完成
+   self.shell.sendline(command)
+   self.shell.expect(prompt_pattern)
+   
+   # 检测交互式提示
+   if pattern in ['Password:', '(y/n)', ...]:
+       self.shell.sendcontrol('c')  # 发送 Ctrl+C
+   ```
+
+4. **解决的问题**
+   - ✅ 别名和函数现在能正常工作
+   - ✅ 环境变量在整个会话中保持
+   - ✅ cd 命令的效果能正确体现
+   - ✅ 交互式命令不会导致挂起
+
+5. **错误处理**
+   - 命令超时：发送 Ctrl+C 并返回错误
+   - Shell 意外终止：自动重启
+   - 交互式命令：检测并中断，返回提示信息
