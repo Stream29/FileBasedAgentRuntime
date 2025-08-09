@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 from src.async_agent import AsyncAgentRuntime
 from src.config import AgentConfig
 from src.entities import EventType, Role
+from src.incremental_output_formatter import IncrementalOutputFormatter
 
 
 def print_welcome() -> None:
@@ -26,7 +27,7 @@ def print_welcome() -> None:
     print("• 输入 'help' 查看可用命令")
     print("• 输入 'status' 查看当前 Agent 状态")
     print("• 按 Ctrl+C 可以中断当前任务")
-    print("• 🚀 支持流式输出和更好的性能")
+    print("• 🚀 开发模式：显示详细输出，智能去重")
     print("=" * 60)
     print()
 
@@ -38,10 +39,18 @@ def print_help() -> None:
     print("  clear      - 清空对话历史并重置 context")
     print("  help       - 显示此帮助信息")
     print("  status     - 显示当前 context 和文件系统状态")
+    print()
+    print("💡 提示:")
+    print("  - 直接输入任务描述，Agent 会帮助你完成")
+    print("  - 支持文件操作、代码编写、信息查询等多种任务")
+    print("  - Agent 会自动管理其工作记忆（context window）")
+    print("  - 开发模式下显示详细输出，自动去除重复内容")
 
 
 async def async_main() -> None:
     """异步主函数"""
+    # 初始化增量输出格式化器
+    output_formatter = IncrementalOutputFormatter()
     print_welcome()
 
     # 加载环境变量
@@ -80,6 +89,8 @@ async def async_main() -> None:
                 context_path.write_text(runtime.agent._get_default_context(), encoding="utf-8")
                 # 清空消息历史
                 runtime.messages.clear()
+                # 重置输出格式化器
+                output_formatter.reset_for_new_conversation()
                 print("✅ 对话历史已清空\n")
                 continue
 
@@ -121,26 +132,27 @@ async def async_main() -> None:
                             # 流式输出文本
                             print(event.content.text, end="", flush=True)
                     elif event.type == EventType.ToolUse:
-                        # 打印工具调用
+                        # 使用 OutputFormatter 格式化工具调用
                         if isinstance(event.content, list):
-                            tool_calls_str = ", ".join(
-                                f"{tc.name}({json.dumps(tc.input, ensure_ascii=False)})"
-                                for tc in event.content
-                            )
-                            print(f"\n⚙️ 调用工具: {tool_calls_str}", end="", flush=True)
+                            for tc in event.content:
+                                formatted = output_formatter.format_tool_call(tc.name, tc.input)
+                                if formatted:
+                                    print(formatted, end="", flush=True)
                     elif event.type == EventType.ToolResult:
-                        # 打印工具结果
+                        # 使用 OutputFormatter 格式化工具结果
                         if isinstance(event.content, list):
-                            tool_results_str = "\n".join(
-                                f"  - {tr.tool_use_id}: {tr.content}" for tr in event.content
-                            )
-                            print(f"\n✅ 工具结果:\n{tool_results_str}", end="", flush=True)
+                            for tr in event.content:
+                                formatted = output_formatter.format_tool_result(tr.tool_use_id, tr.content)
+                                if formatted:
+                                    print(formatted, end="", flush=True)
                     elif event.type == EventType.Thinking:
-                        # 打印思考过程
+                        # 使用 OutputFormatter 格式化思考过程
                         if hasattr(event.content, "thinking"):
-                            print(f"\n🧠 思考: {event.content.thinking}", end="", flush=True)
+                            formatted = output_formatter.format_thinking(event.content.thinking)
+                            if formatted:
+                                print(formatted, end="", flush=True)
                     elif event.type == EventType.Error and hasattr(event.content, "text"):
-                        print(f"\n❌ 错误: {event.content.text}", end="", flush=True)
+                        print(output_formatter.format_error(event.content.text), end="", flush=True)
 
                 print()  # 确保换行
 

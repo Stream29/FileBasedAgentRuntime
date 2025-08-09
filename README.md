@@ -1,6 +1,21 @@
 # FileSystem-based Agent
 
-一个基于文件系统的 AI Agent，通过文件系统管理所有状态，无需传统对话历史。
+一个基于文件系统的 AI Agent 开发框架，通过文件系统管理所有状态，无需传统对话历史。
+
+## 架构设计
+
+本项目采用 **Agent Runtime + Agent State** 的架构设计：
+
+- **Agent Runtime**：提供基础的文件操作和命令行执行能力，是一个纯粹的工具提供者
+- **Agent State**：所有 Agent 的状态、记忆、工作内容都保存在 `agent_root` 目录下
+- **完全解耦**：Runtime 不关心 Agent 在做什么，只提供工具；Agent 通过文件系统自主管理状态
+
+## 当前应用
+
+Agent 当前被配置用于开发 Dify 的工具插件，`agent_root` 目录下已包含：
+- 📚 **参考文档**：Dify 插件开发的完整文档
+- 🔧 **代码示例**：多个插件实现示例（Google Calendar、HackerNews、SQLite 等）
+- 📋 **开发指南**：最佳实践和发布指南
 
 ## 核心特性
 
@@ -9,7 +24,7 @@
 - **冷热数据分离**：自动归档历史到 storage
 - **完全可观测**：所有操作都有详细日志记录
 - **sync_context 机制**：优雅解决记忆更新的递归依赖问题
-- **增量流式响应**：实时输出文本和工具调用，每次只显示新增内容，提供自然的交互体验
+- **增量输出系统**：智能去重机制，保持详尽输出的同时避免重复内容，开发友好
 - **异步架构**：高性能处理，支持并发操作
 - **直接 API 调用**：使用官方 Anthropic SDK，获得更精细的控制
 - **思考模式支持**：支持 Claude 的思考功能（需要 API 权限）
@@ -26,22 +41,31 @@
 - **自动文件系统扫描**：每次生成 system message 时自动扫描并生成最新的目录结构
 - **无需手动维护**：系统自动管理文件系统结构，Agent 可以专注于任务本身
 
-### 文件结构
+### 项目结构
 
 ```
 FileSystemBasedAgent/
-├── agent_root/               # Agent 的工作目录
-│   ├── workspace/           # 工作空间（热数据）
-│   ├── storage/             # 存储空间（冷数据）
-│   │   ├── documents/      # 参考文档
-│   │   ├── few_shots/      # 代码示例
-│   │   └── history/        # 任务历史记录
-│   ├── guideline.md        # Agent 行为准则
-│   └── context_window_main.md # 工作记忆
+├── src/                     # Runtime 源代码（工具提供者）
+├── main.py                  # 主程序入口
 ├── logs/                    # 操作日志
-├── src/                     # 源代码
-└── main.py                  # 主程序入口
+└── agent_root/              # Agent 的完整状态（所有数据都在这里）
+    ├── workspace/           # 工作空间（当前项目文件）
+    ├── storage/             # 持久化存储
+    │   ├── documents/       # 参考文档
+    │   │   ├── plugins/     # Dify 插件开发文档
+    │   │   ├── tools_summary.md
+    │   │   └── available_tools_guide.md
+    │   ├── few_shots/       # 代码示例
+    │   │   ├── google_calendar/  # Google 日历插件
+    │   │   ├── hackernews/      # HackerNews 插件
+    │   │   ├── sqlite/          # SQLite 插件
+    │   │   └── tools_usage_example.py
+    │   └── history/         # 历史任务归档
+    ├── guideline.md         # Agent 行为准则
+    └── context_window_main.md # 当前工作记忆
 ```
+
+**关键理念**：`agent_root` 是 Agent 的"大脑"，包含了它需要的所有知识、记忆和工作内容。Runtime 只是提供工具让 Agent 能够操作这个"大脑"。
 
 ## 快速开始
 
@@ -88,31 +112,38 @@ uv run python main.py
 
 ### 交互式会话
 ```
-🤖 FileSystem-based Agent - 交互式模式 (异步版)
+🤖 FileSystem-based Agent - 交互式模式
 ============================================================
 • 输入任务描述，Agent 会执行并回复
 • 输入 'exit' 或 'quit' 退出
 • 输入 'clear' 清空对话历史
-• 输入 'help' 查看帮助
+• 输入 'help' 查看可用命令
+• 输入 'status' 查看当前 Agent 状态
 • 按 Ctrl+C 可以中断当前任务
-• 🚀 支持流式输出和更好的性能
+• 🚀 开发模式：显示详细输出，智能去重
 ============================================================
 
 👤 You: 创建一个计算斐波那契数列的 Python 脚本
 
 🤖 Agent: 我来创建一个计算斐波那契数列的 Python 脚本...
-   🔧 使用工具: write_file ✓
-   🔧 使用工具: read_file ✓
+
+📄 create_file: fibonacci.py
+✅ 文件创建成功
+
+📖 读取文件: fibonacci.py [行 1-20]
+✅ 读取到 15 行内容
 
 文件已创建成功！我创建了 fibonacci.py，包含了一个递归实现的斐波那契函数...
 
-👤 You: 运行这个脚本并显示前10个数
+👤 User: 运行这个脚本并显示前10个数
 
 🤖 Agent: 执行脚本并显示结果...
-   🔧 使用工具: execute_command ✓
 
-输出结果：
-0 1 1 2 3 5 8 13 21 34
+🔧 执行命令: python fibonacci.py
+✅ 命令完成 (退出码: 0)
+输出:
+   斐波那契数列前 10 个数:
+   0, 1, 1, 2, 3, 5, 8, 13, 21, 34
 
 👤 You: exit
 
@@ -155,6 +186,45 @@ Agent 使用命令行优先的工具系统：
 - `list_directory(path)` - 列出目录
 - `execute_command(command, working_dir?)` - 执行命令
 
+## Agent 能力与应用场景
+
+### 当前能力
+
+Agent 具备完整的软件开发能力：
+- 📝 **文件操作**：创建、编辑、读取任意文件
+- 🔧 **命令执行**：运行任何命令行工具（git、python、npm 等）
+- 🧠 **记忆管理**：自主决定保留哪些信息，归档哪些历史
+- 🔄 **状态保持**：通过持久化 Shell 会话保持完整的工作状态
+
+### 适用场景
+
+1. **插件开发**（当前应用）
+   - 开发 Dify 工具插件
+   - 参考已有示例和文档
+   - 测试和调试插件功能
+
+2. **代码生成与重构**
+   - 根据需求生成完整项目
+   - 重构现有代码
+   - 添加测试用例
+
+3. **自动化任务**
+   - 批量文件处理
+   - 代码分析和报告
+   - 依赖管理和更新
+
+4. **学习与实验**
+   - 探索新技术栈
+   - 创建概念验证
+   - 编写技术文档
+
+### 使用建议
+
+1. **明确任务目标**：给 Agent 清晰的任务描述
+2. **提供参考资料**：将相关文档放入 `storage/documents`
+3. **定期检查进度**：查看 `workspace` 和 `context_window_main.md`
+4. **保存重要成果**：Agent 会自动归档完成的任务
+
 ## 开发测试
 
 运行基本功能测试：
@@ -181,6 +251,13 @@ uv run pytest
 2. 不会执行危险命令（如 `rm -rf /`, `sudo` 等）
 3. 每 3-5 个操作后会自动提醒 sync_context
 4. 所有操作都有详细日志，便于调试和监控
+
+## 相关文档
+
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - 详细的架构设计说明
+- **[DIFY_PLUGIN_DEVELOPMENT.md](DIFY_PLUGIN_DEVELOPMENT.md)** - Dify 插件开发指南
+- **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - 项目当前状态
+- **[mvp_plan.md](mvp_plan.md)** - 技术实现细节和开发历程
 
 ## 开发指南
 

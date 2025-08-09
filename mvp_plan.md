@@ -1504,3 +1504,129 @@ MVP 验证成功后，可以考虑：
    - 命令超时：发送 Ctrl+C 并返回错误
    - Shell 意外终止：自动重启
    - 交互式命令：检测并中断，返回提示信息
+
+## 15. 架构设计理念（核心）
+
+### Runtime + State 分离
+
+本项目的核心架构理念是将 Agent 系统分为两个完全独立的部分：
+
+1. **Agent Runtime（运行时）**
+   - 无状态的工具提供者
+   - 不保存任何业务数据
+   - 只负责执行操作和返回结果
+   - 可以随时替换或升级
+
+2. **Agent State（状态）**
+   - 完全保存在 `agent_root` 目录
+   - 包含所有知识、记忆、工作内容
+   - 可以完整迁移到任何环境
+   - 支持版本控制和历史追踪
+
+### 设计优势
+
+1. **解耦性**：Runtime 和 State 完全解耦，互不依赖
+2. **可迁移**：整个 `agent_root` 可以打包带走
+3. **透明性**：所有状态都是可见的文件
+4. **可调试**：可以直接查看和修改 Agent 的状态
+5. **多实例**：可以同时运行多个不同状态的 Agent
+
+### 实际应用
+
+当前 Agent 被配置用于开发 Dify 工具插件：
+- `storage/documents/plugins/` - Dify 插件开发文档
+- `storage/few_shots/` - 多个插件实现示例
+- `workspace/` - 插件开发工作区
+
+这种架构使得 Agent 可以轻松切换到其他任务，只需要：
+1. 归档当前的 `agent_root`
+2. 创建新的 `agent_root` 并提供相应资源
+3. Agent 立即可以开始新任务
+
+## 16. 增量输出改进（已实现）
+
+### 背景
+
+Agent 的控制台输出存在可读性问题：
+- 工具调用显示过于冗长，特别是 `sync_context` 调用
+- 重复内容反复显示，如相同的文件读取操作
+- 开发阶段需要详细信息，但又不想被重复内容淹没
+
+### 解决方案：增量输出格式化器
+
+#### 16.1 IncrementalOutputFormatter 类
+
+创建了 `src/incremental_output_formatter.py`，专注于"增量输出"而非"分级输出"：
+
+```python
+class IncrementalOutputFormatter:
+    """格式化 Agent 的输出，确保只显示增量内容"""
+```
+
+#### 16.2 核心特性
+
+1. **去重机制**：
+   - 记录已显示的工具调用，避免重复显示相同操作
+   - `sync_context` 只在内容真正变化时显示
+   - Shell 命令可重复执行，但会标记为"重复执行"
+
+2. **智能格式化**：
+   - 文件操作显示操作次数（第 1 次、第 2 次...）
+   - 长输出智能截断（显示前 10 行和后 5 行）
+   - 根据工具类型使用不同图标（🔧 命令、📖 读取、✏️ 编辑等）
+
+3. **详细但不冗余**：
+   - 保留所有必要的开发信息
+   - 自动过滤重复内容
+   - 命令输出使用缩进，提高可读性
+
+#### 16.3 改进效果
+
+**改进前**：
+```
+⚙️ 调用工具: sync_context("{\"new_context_content\": \"# Current Task\\n总结计
+⚙️ 调用工具: sync_context("{\"new_context_content\": \"# Current Task\\n总结计算器
+...（重复几十次，每次输入一个字符）...
+```
+
+**改进后**：
+```
+📝 更新 Context (37 行, 第 1 次更新)
+（相同内容的 sync_context 被自动忽略）
+📝 更新 Context (45 行, 第 2 次更新)
+```
+
+**文件操作示例**：
+```
+📖 读取文件: /workspace/test.py [行 1-10]
+（相同的读取被忽略）
+📖 读取文件: /workspace/test.py [行 11-20] (第 2 次)
+✏️ 编辑文件: /workspace/test.py [行 5-8] (第 3 次)
+```
+
+**命令输出示例**：
+```
+🔧 执行命令: ls -la workspace/
+✅ 命令完成 (退出码: 0)
+输出:
+   total 32
+   drwxr-xr-x  6 user  staff   192 Aug  9 17:00 .
+   drwxr-xr-x  8 user  staff   256 Aug  9 16:30 ..
+   -rw-r--r--  1 user  staff  1024 Aug  9 17:00 main.py
+   ... (省略 90 行) ...
+   -rw-r--r--  1 user  staff   512 Aug  9 16:45 utils.py
+```
+
+#### 16.4 技术实现
+
+1. **状态跟踪**：
+   - `shown_tool_calls`: 记录已显示的工具调用
+   - `shown_results`: 记录已显示的结果
+   - `file_operations`: 跟踪每个文件的操作次数
+   - `last_sync_context`: 记录上次 context 内容
+
+2. **重置机制**：
+   - `reset_for_new_conversation()` 方法清空所有状态
+   - 在 `clear` 命令时自动调用
+
+这个改进保持了开发阶段所需的详细信息，同时通过智能去重大大提升了输出的可读性。
