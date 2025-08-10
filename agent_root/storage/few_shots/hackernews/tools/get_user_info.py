@@ -95,6 +95,6 @@ class GetUserInfoTool(Tool):
             yield self.create_json_message(user_info)
 
         except requests.RequestException as e:
-            yield self.create_text_message(f"Network error: {str(e)}")
+            yield self.create_text_message(f"Network error: {e!s}")
         except Exception as e:
-            yield self.create_text_message(f"An error occurred: {str(e)}")
+            yield self.create_text_message(f"An error occurred: {e!s}")

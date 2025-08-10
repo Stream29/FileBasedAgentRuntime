@@ -1,6 +1,6 @@
 import re
 from collections.abc import Generator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import requests
@@ -212,14 +212,14 @@ class ListEventsTool(Tool):
                 data={"error": str(e)},
                 status=InvokeMessage.LogMessage.LogStatus.ERROR,
             )
-            yield self.create_text_message(f"Network error occurred: {str(e)}")
+            yield self.create_text_message(f"Network error occurred: {e!s}")
         except Exception as e:
             yield self.create_log_message(
                 label="Unexpected Error",
                 data={"error": str(e), "type": type(e).__name__},
                 status=InvokeMessage.LogMessage.LogStatus.ERROR,
             )
-            yield self.create_text_message(f"An unexpected error occurred: {str(e)}")
+            yield self.create_text_message(f"An unexpected error occurred: {e!s}")
 
     def _format_datetime(self, dt_string: str) -> str:
         """
@@ -240,7 +240,7 @@ class ListEventsTool(Tool):
                     dt = datetime.strptime(dt_string, fmt)
                     # Add timezone if not present
                     if dt.tzinfo is None:
-                        dt = dt.replace(tzinfo=timezone.utc)
+                        dt = dt.replace(tzinfo=UTC)
                     return dt.isoformat()
                 except ValueError:
                     continue
@@ -313,5 +313,5 @@ class ListEventsTool(Tool):
             return {
                 "id": event.get("id"),
                 "title": event.get("summary", "Unknown Event"),
-                "error": f"Failed to format event: {str(e)}",
+                "error": f"Failed to format event: {e!s}",
             }

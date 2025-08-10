@@ -67,7 +67,7 @@ class GoogleCalendarProvider(ToolProvider):
             response.raise_for_status()
             token_data = response.json()
         except requests.RequestException as e:
-            raise ToolProviderOAuthError(f"Failed to exchange code for token: {str(e)}")
+            raise ToolProviderOAuthError(f"Failed to exchange code for token: {e!s}")
 
         if "access_token" not in token_data:
             raise ToolProviderOAuthError(f"No access token in response: {token_data}")
@@ -112,7 +112,7 @@ class GoogleCalendarProvider(ToolProvider):
             response.raise_for_status()
             token_data = response.json()
         except requests.RequestException as e:
-            raise ToolProviderOAuthError(f"Failed to refresh token: {str(e)}")
+            raise ToolProviderOAuthError(f"Failed to refresh token: {e!s}")
 
         if "access_token" not in token_data:
             raise ToolProviderOAuthError(
@@ -174,9 +174,9 @@ class GoogleCalendarProvider(ToolProvider):
             )
         except requests.RequestException as e:
             raise ToolProviderCredentialValidationError(
-                f"Network error during credential validation: {str(e)}"
+                f"Network error during credential validation: {e!s}"
             )
         except Exception as e:
             raise ToolProviderCredentialValidationError(
-                f"Unexpected error during credential validation: {str(e)}"
+                f"Unexpected error during credential validation: {e!s}"
             )

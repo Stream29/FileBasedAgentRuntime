@@ -1,9 +1,11 @@
+import os
+import sqlite3
 from collections.abc import Generator
 from typing import Any
-import sqlite3
-import os
+
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
+
 
 class DeleteSQLTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
@@ -63,4 +65,4 @@ class DeleteSQLTool(Tool):
         except Exception as e:
             msg = f"Failed to execute delete operation: {e}"
             yield self.create_text_message(msg)
-            yield self.create_json_message({"status": "error", "error": str(e)}) 
+            yield self.create_json_message({"status": "error", "error": str(e)})

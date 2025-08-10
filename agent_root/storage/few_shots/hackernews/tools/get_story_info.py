@@ -159,9 +159,9 @@ class GetStoryInfoTool(Tool):
                 yield self.create_link_message(story_url)
 
         except requests.RequestException as e:
-            yield self.create_text_message(f"Network error: {str(e)}")
+            yield self.create_text_message(f"Network error: {e!s}")
         except Exception as e:
-            yield self.create_text_message(f"An error occurred: {str(e)}")
+            yield self.create_text_message(f"An error occurred: {e!s}")
 
     def _get_comments(self, comment_ids: list) -> list:
         """Helper method to fetch comment details."""

@@ -18,10 +18,10 @@ def run_command(cmd: list[str], description: str) -> bool:
     print(f"\n{BOLD}🔍 {description}{RESET}")
     print(f"   命令: {' '.join(cmd)}")
     print("-" * 60)
-    
+
     try:
         result = subprocess.run(cmd, capture_output=True, text=True)
-        
+
         if result.returncode == 0:
             print(f"{GREEN}✅ 通过！{RESET}")
             if result.stdout:
@@ -42,14 +42,14 @@ def run_command(cmd: list[str], description: str) -> bool:
 def main() -> None:
     """运行所有代码检查"""
     print(f"{BOLD}🚀 开始代码质量检查...{RESET}")
-    
+
     # 检查是否在项目根目录
     if not Path("pyproject.toml").exists():
         print(f"{RED}错误: 请在项目根目录运行此脚本{RESET}")
         sys.exit(1)
-    
+
     all_passed = True
-    
+
     # 1. Ruff linting
     if not run_command(
         ["uv", "run", "ruff", "check", "src"],
@@ -57,7 +57,7 @@ def main() -> None:
     ):
         all_passed = False
         print(f"{YELLOW}提示: 可以使用 'uv run ruff check src --fix' 自动修复部分问题{RESET}")
-    
+
     # 2. Ruff formatting check
     if not run_command(
         ["uv", "run", "ruff", "format", "--check", "src"],
@@ -65,7 +65,7 @@ def main() -> None:
     ):
         all_passed = False
         print(f"{YELLOW}提示: 可以使用 'uv run ruff format src' 自动格式化代码{RESET}")
-    
+
     # 3. MyPy type checking
     if not run_command(
         ["uv", "run", "mypy", "src"],
@@ -73,14 +73,14 @@ def main() -> None:
     ):
         all_passed = False
         print(f"{YELLOW}提示: 逐步添加类型注解可以提高代码质量{RESET}")
-    
+
     # 4. 检查是否有未使用的导入
     if not run_command(
         ["uv", "run", "ruff", "check", "src", "--select", "F401"],
         "检查未使用的导入"
     ):
         all_passed = False
-    
+
     # 总结
     print("\n" + "=" * 60)
     if all_passed:

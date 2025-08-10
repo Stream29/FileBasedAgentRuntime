@@ -1,9 +1,11 @@
+import os
+import sqlite3
 from collections.abc import Generator
 from typing import Any
-import sqlite3
-import os
+
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
+
 
 class CreateTableTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:

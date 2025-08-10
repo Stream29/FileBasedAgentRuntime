@@ -1,4 +1,0 @@
-查看 workspace 目录下有哪些文件
-创建一个简单的 hello.py 文件，打印 Hello World
-运行这个 hello.py 文件
-exit

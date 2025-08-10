@@ -64,9 +64,7 @@ class FileSystemAgent:
             elif tool_name == "edit_file":
                 result = self.file_editor.edit_file(
                     params["path"],
-                    params["start_line"],
-                    params["end_line"],
-                    params["new_content"]
+                    params["content"]
                 )
             elif tool_name == "create_file":
                 result = self.file_editor.create_file(

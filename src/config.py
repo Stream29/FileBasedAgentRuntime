@@ -45,11 +45,11 @@ class AgentConfig(BaseModel):
 
         # Build config dict from environment variables
         config_dict = {"api_key": api_key, "base_url": base_url}
-        
+
         # 如果环境变量中有模型配置，添加到 config_dict
         if model:
             config_dict["model"] = model
-            
+
         # kwargs 优先级最高，覆盖环境变量的设置
         config_dict.update(kwargs)
 

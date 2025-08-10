@@ -1669,47 +1669,113 @@ class IncrementalOutputFormatter:
 
 ### 背景
 
-用户反馈两个主要问题：
-1. Agent 输出大量空的或不完整的工具调用，影响可读性
-2. Shell 命令输出包含命令回显、控制字符和提示符等噪音
-
-### 问题分析
-
-1. **空工具调用问题**
-   - 原因：流式 API 在构建 JSON 时的每个中间状态都被输出
-   - 表现：一个工具调用显示 5-10 行中间状态
-
-2. **Shell 输出格式问题**
-   - 原因：输出包含了 `\r`、`\u0002` 等控制字符，以及命令回显和提示符
-   - 表现：输出不干净，包含系统元素
+控制台输出存在以下问题：
+1. 空工具调用：输出不完整的工具调用 JSON
+2. Shell 输出格式不干净：包含命令回显、控制字符、提示符等
 
 ### 解决方案
 
-1. **修复空工具调用**（`src/async_agent.py`）
-   - 删除 ContentBlockStart 时的 yield（第 318 行）
-   - 删除 InputJsonDelta 时的 yield（第 364 行）
-   - 只在 ContentBlockStop 时输出完整的工具调用
+1. **修复空工具调用**
+   - 移除 `ContentBlockStart` 和 `InputJsonDelta` 时的 yield
+   - 只在 `ContentBlockStop` 时输出完整的工具调用
 
-2. **修复 Shell 输出**（`src/persistent_shell.py`）
-   - 提前清理控制字符（`\r`）
-   - 智能检测并移除命令回显
-   - 检测并移除末尾的提示符
-   - 最终清理确保输出干净
+2. **优化 Shell 输出**
+   - 移除命令回显（第一行）
+   - 移除提示符（最后一行）
+   - 清理控制字符
+
+3. **改进错误显示**
+   - 添加完整的堆栈跟踪信息
+   - 工具执行错误时显示 traceback
 
 ### 效果
 
-修复前：
+- 控制台输出更清晰
+- 工具调用信息完整
+- Shell 输出干净无冗余
+
+## 19. 流式处理架构重构（已实现）
+
+### 背景
+
+原有的流式处理存在严重问题：
+1. **文本过度碎片化**：一个简单句子被分成 570+ 个片段
+2. **大量重复输出**：某些文本片段重复 1200+ 次
+3. **职责混乱**：AgentRuntime 既处理流式又处理业务逻辑
+
+### 问题分析
+
+通过直接调用 Anthropic API 测试发现：
+- API 本身返回的事件是正常的
+- 问题出在 `_process_stream` 的设计上
+- 每个小片段都创建新事件，导致大量冗余
+
+### 解决方案
+
+#### 1. 架构重新设计
+
 ```
-🔧 执行命令: 
-🔧 执行命令: {"command":
-🔧 执行命令: {"command": "echo 'Hello'"}
-输出: echo 'Hello W \rorld'\nHello World\nuser@host:~$
+Anthropic API 
+    ↓
+StreamProcessor (聚合完整数据)
+    ├→ ConsoleStreamHandler (实时控制台输出)
+    └→ CompleteResponse → AgentRuntime (只处理完整数据)
 ```
 
-修复后：
-```
-🔧 执行命令: echo 'Hello World'
-输出: Hello World
-```
+#### 2. 核心组件
 
-用户体验得到显著改善，输出更加清晰专业。
+**StreamProcessor** (`src/stream_processor.py`)
+- 处理原始流式事件
+- 聚合成完整的数据块
+- 返回结构化的 `CompleteResponse`
+
+**ConsoleStreamHandler** (`src/console_handler.py`)
+- 专门处理控制台显示
+- 智能文本缓冲，避免过度碎片化
+- 去重和自然断点检测
+
+**新的 AsyncAgentRuntime 接口**
+- `invoke()`: 纯数据接口，不处理流式
+- `invoke_with_console()`: 带控制台输出的接口
+
+#### 3. 实现细节
+
+1. **文本缓冲策略**
+   - 遇到句号、感叹号等自然断点时输出
+   - 缓冲区达到一定大小时输出
+   - 避免重复输出相同内容
+
+2. **工具调用处理**
+   - 累积完整的 JSON 后再解析
+   - 显示工具执行进度和结果
+
+3. **职责分离**
+   - StreamProcessor: 数据聚合
+   - ConsoleStreamHandler: 显示优化
+   - AgentRuntime: 业务逻辑
+
+### 测试结果
+
+1. **效率提升**
+   - 文本片段从 570+ 降到 13 个
+   - 输出效率 1.00（无重复）
+
+2. **用户体验改善**
+   - 流畅的实时输出
+   - 清晰的工具调用信息
+   - 无重复、无碎片
+
+### 使用方式
+
+```python
+# 创建运行时和控制台处理器
+runtime = AsyncAgentRuntime(project_root, config)
+console_handler = ConsoleStreamHandler()
+
+# 调用新接口
+response = await runtime.invoke_with_console(
+    role="user",
+    content=user_input,
+    console_handler=console_handler
+)
+```

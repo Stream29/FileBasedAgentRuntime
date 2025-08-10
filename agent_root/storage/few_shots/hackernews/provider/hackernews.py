@@ -1,5 +1,3 @@
-from collections.abc import Mapping
-from typing import Any
 
 import requests
 from dify_plugin import ToolProvider
@@ -24,5 +22,5 @@ class HackerNewsProvider(ToolProvider):
                 )
         except requests.RequestException as e:
             raise ToolProviderCredentialValidationError(
-                f"Failed to connect to Hacker News API: {str(e)}"
+                f"Failed to connect to Hacker News API: {e!s}"
             )

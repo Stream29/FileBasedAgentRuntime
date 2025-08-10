@@ -1,7 +1,7 @@
 import json
 import re
 from collections.abc import Generator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import requests
@@ -134,7 +134,7 @@ class CreateEventTool(Tool):
                 yield self.create_json_message(result)
 
                 # Create user-friendly text response
-                success_text = f"✅ Event created successfully!\n\n"
+                success_text = "✅ Event created successfully!\n\n"
                 success_text += f"📅 Title: {title}\n"
 
                 if start_time:
@@ -142,7 +142,7 @@ class CreateEventTool(Tool):
                 if end_time:
                     success_text += f"🕒 End: {end_time}\n"
                 if all_day:
-                    success_text += f"📆 All-day event\n"
+                    success_text += "📆 All-day event\n"
                 if location:
                     success_text += f"📍 Location: {location}\n"
                 if description:
@@ -227,7 +227,7 @@ class CreateEventTool(Tool):
                 data={"error": str(e)},
                 status=InvokeMessage.LogMessage.LogStatus.ERROR,
             )
-            yield self.create_text_message(f"Failed to encode event data: {str(e)}")
+            yield self.create_text_message(f"Failed to encode event data: {e!s}")
         except requests.Timeout:
             yield self.create_text_message("Request timed out. Please try again.")
         except requests.RequestException as e:
@@ -236,14 +236,14 @@ class CreateEventTool(Tool):
                 data={"error": str(e)},
                 status=InvokeMessage.LogMessage.LogStatus.ERROR,
             )
-            yield self.create_text_message(f"Network error occurred: {str(e)}")
+            yield self.create_text_message(f"Network error occurred: {e!s}")
         except Exception as e:
             yield self.create_log_message(
                 label="Unexpected Error",
                 data={"error": str(e), "type": type(e).__name__},
                 status=InvokeMessage.LogMessage.LogStatus.ERROR,
             )
-            yield self.create_text_message(f"An unexpected error occurred: {str(e)}")
+            yield self.create_text_message(f"An unexpected error occurred: {e!s}")
 
     def _build_event_data(
         self,
@@ -339,7 +339,7 @@ class CreateEventTool(Tool):
             return event_data
 
         except Exception as e:
-            print(f"Error building event data: {str(e)}")
+            print(f"Error building event data: {e!s}")
             return None
 
     def _format_datetime(self, dt_string: str) -> str:
@@ -365,7 +365,7 @@ class CreateEventTool(Tool):
                     dt = datetime.strptime(dt_string, fmt)
                     # Add timezone if not present
                     if dt.tzinfo is None:
-                        dt = dt.replace(tzinfo=timezone.utc)
+                        dt = dt.replace(tzinfo=UTC)
                     return dt.isoformat()
                 except ValueError:
                     continue
@@ -373,7 +373,7 @@ class CreateEventTool(Tool):
             # If no format matches, assume it's a date and add default time
             try:
                 dt = datetime.strptime(dt_string, "%Y-%m-%d")
-                dt = dt.replace(tzinfo=timezone.utc)
+                dt = dt.replace(tzinfo=UTC)
                 return dt.isoformat()
             except ValueError:
                 pass
@@ -463,5 +463,5 @@ class CreateEventTool(Tool):
             return {
                 "id": event.get("id"),
                 "title": event.get("summary", "Unknown Event"),
-                "error": f"Failed to format event: {str(e)}",
+                "error": f"Failed to format event: {e!s}",
             }

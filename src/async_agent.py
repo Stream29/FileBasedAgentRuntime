@@ -11,6 +11,7 @@ from anthropic.types.input_json_delta import InputJsonDelta
 from dotenv import load_dotenv
 
 from .config import AgentConfig
+from .console_handler import ConsoleStreamHandler
 from .entities import (
     ContentDeltaType,
     ContentType,
@@ -25,6 +26,7 @@ from .entities import (
     Usage,
 )
 from .file_system_agent import FileSystemAgent
+from .stream_processor import CompleteResponse, StreamProcessor
 from .tools_registry import ToolsRegistry
 
 
@@ -183,6 +185,319 @@ class AsyncAgentRuntime:
         lines.append("```")
 
         return "\n".join(lines)
+
+    async def invoke(self, role: str = "user", content: str = "", max_rounds: int = 10) -> CompleteResponse:
+        """
+        非流式接口，返回完整响应，支持多轮工具调用
+
+        Args:
+            role: 消息角色
+            content: 消息内容
+            max_rounds: 最大轮数（防止无限循环）
+
+        Returns:
+            CompleteResponse: 包含完整文本、工具调用、使用情况等
+        """
+        # 只在有内容时添加初始用户消息（第一轮）
+        if role and content:
+            await self.create_event(Role(role), EventType.Message, TextContent(text=content))
+
+        # 累积的完整响应
+        final_response = CompleteResponse(
+            text="",
+            tool_calls=[],
+            stop_reason=None,
+            usage=None,
+            thinking=None,
+            tool_results=[]
+        )
+
+        # 循环处理，最多 max_rounds 轮
+        for round_num in range(max_rounds):  # noqa: B007
+            # 加载系统上下文
+            system_prompt = await self._load_system_context()
+            self.config.system_prompt = system_prompt
+
+            # 准备 API 消息
+            api_messages = [msg.transform_api() for msg in self.messages]
+
+            # 创建流
+            stream_params = {
+                "model": self.config.model,
+                "messages": api_messages,
+                **self._build_request_params(),
+                "timeout": self.config.timeout,
+            }
+
+            # 添加 beta 特性（如果启用）
+            if self.config.beta and self.config.betas():
+                stream_call = self.client.beta.messages.stream
+                stream_params["betas"] = self.config.betas()
+            else:
+                stream_call = self.client.messages.stream
+
+            # 使用 StreamProcessor 处理流
+            processor = StreamProcessor()
+
+            async with stream_call(**stream_params) as stream:
+                response = await processor.process_stream(stream)
+
+            # 累积响应内容
+            if response.text:
+                final_response.text += response.text
+
+            # 更新使用情况
+            final_response.usage = response.usage
+            final_response.stop_reason = response.stop_reason
+
+            # 如果有思考内容，累积
+            if response.thinking:
+                final_response.thinking = (final_response.thinking or "") + response.thinking
+
+            # 创建 assistant 消息（包含文本和工具调用）
+            assistant_content = []
+            if response.text:
+                assistant_content.append(TextContent(text=response.text))
+            if response.tool_calls:
+                for tool_call in response.tool_calls:
+                    assistant_content.append(
+                        ToolUseContent(
+                            id=tool_call.id,
+                            name=tool_call.name,
+                            input=tool_call.input
+                        )
+                    )
+
+            if assistant_content:
+                # 如果只有一个 TextContent，可以直接传递；否则必须传递列表
+                if len(assistant_content) == 1 and isinstance(assistant_content[0], TextContent):
+                    content = assistant_content[0]
+                else:
+                    content = assistant_content
+
+                await self.create_event(
+                    Role.Assistant,
+                    EventType.Message,
+                    content
+                )
+
+            # 如果没有工具调用，结束循环
+            if not response.tool_calls:
+                break
+
+            # 处理工具调用
+            final_response.tool_calls.extend(response.tool_calls)
+
+            # 执行工具并收集结果
+            tool_results = []
+            for tool_call in response.tool_calls:
+                try:
+                    result = self.agent.execute_tool(tool_call.name, tool_call.input)
+                    tool_results.append(
+                        ToolResultContent(
+                            tool_use_id=tool_call.id,
+                            content=self._format_tool_result(result)
+                        )
+                    )
+                except Exception as e:
+                    import traceback
+                    error_msg = f"Tool execution error: {e!s}\n\n📋 详细堆栈信息：\n{traceback.format_exc()}"
+                    tool_results.append(
+                        ToolResultContent(
+                            tool_use_id=tool_call.id,
+                            content=error_msg
+                        )
+                    )
+
+            # 将工具结果添加到消息历史
+            await self.create_event(
+                Role.User,
+                EventType.ToolResult,
+                tool_results
+            )
+
+            # 累积工具结果
+            if final_response.tool_results is None:
+                final_response.tool_results = []
+            final_response.tool_results.extend([r.content for r in tool_results])
+
+            # 如果达到 MaxTokens 或其他停止原因，结束循环
+            if response.stop_reason in [StopReason.MaxTokens, StopReason.Refusal]:
+                break
+
+        return final_response
+
+    async def invoke_with_console(
+        self,
+        role: str = "user",
+        content: str = "",
+        console_handler: ConsoleStreamHandler = None,
+        max_rounds: int = 10
+    ) -> CompleteResponse:
+        """
+        带控制台输出的接口，支持多轮工具调用
+
+        Args:
+            role: 消息角色
+            content: 消息内容
+            console_handler: 控制台处理器
+            max_rounds: 最大轮数（防止无限循环）
+
+        Returns:
+            CompleteResponse: 完整响应
+        """
+        # 只在有内容时添加初始用户消息（第一轮）
+        if role and content:
+            await self.create_event(Role(role), EventType.Message, TextContent(text=content))
+
+        # 如果没有提供控制台处理器，创建一个
+        if console_handler is None:
+            console_handler = ConsoleStreamHandler()
+
+        # 累积的完整响应
+        final_response = CompleteResponse(
+            text="",
+            tool_calls=[],
+            stop_reason=None,
+            usage=None,
+            thinking=None,
+            tool_results=[]
+        )
+
+        # 循环处理，最多 max_rounds 轮
+        for round_num in range(max_rounds):
+            # 加载系统上下文
+            system_prompt = await self._load_system_context()
+            self.config.system_prompt = system_prompt
+
+            # 准备 API 消息
+            api_messages = [msg.transform_api() for msg in self.messages]
+
+            # 创建流
+            stream_params = {
+                "model": self.config.model,
+                "messages": api_messages,
+                **self._build_request_params(),
+                "timeout": self.config.timeout,
+            }
+
+            # 添加 beta 特性（如果启用）
+            if self.config.beta and self.config.betas():
+                stream_call = self.client.beta.messages.stream
+                stream_params["betas"] = self.config.betas()
+            else:
+                stream_call = self.client.messages.stream
+
+            # 使用 StreamProcessor 处理流，同时输出到控制台
+            processor = StreamProcessor()
+
+            async with stream_call(**stream_params) as stream:
+                response = await processor.process_stream(
+                    stream,
+                    console_callback=console_handler.handle_stream_event
+                )
+
+            # 累积响应内容
+            if response.text:
+                final_response.text += response.text
+
+            # 更新使用情况
+            final_response.usage = response.usage
+            final_response.stop_reason = response.stop_reason
+
+            # 如果有思考内容，累积
+            if response.thinking:
+                final_response.thinking = (final_response.thinking or "") + response.thinking
+                if round_num == 0:  # 只在第一轮显示思考过程
+                    print(f"\n\n💭 思考过程:\n{response.thinking}")
+
+            # 创建 assistant 消息（包含文本和工具调用）
+            assistant_content = []
+            if response.text:
+                assistant_content.append(TextContent(text=response.text))
+            if response.tool_calls:
+                for tool_call in response.tool_calls:
+                    assistant_content.append(
+                        ToolUseContent(
+                            id=tool_call.id,
+                            name=tool_call.name,
+                            input=tool_call.input
+                        )
+                    )
+
+            if assistant_content:
+                # 如果只有一个 TextContent，可以直接传递；否则必须传递列表
+                if len(assistant_content) == 1 and isinstance(assistant_content[0], TextContent):
+                    content = assistant_content[0]
+                else:
+                    content = assistant_content
+
+                await self.create_event(
+                    Role.Assistant,
+                    EventType.Message,
+                    content
+                )
+
+            # 如果没有工具调用，结束循环
+            if not response.tool_calls:
+                break
+
+            # 处理工具调用
+            final_response.tool_calls.extend(response.tool_calls)
+
+            # 执行工具并收集结果
+            tool_results = []
+            for tool_call in response.tool_calls:
+                try:
+                    print(f"\n⚙️ 执行工具: {tool_call.name}")
+                    result = self.agent.execute_tool(tool_call.name, tool_call.input)
+                    tool_results.append(
+                        ToolResultContent(
+                            tool_use_id=tool_call.id,
+                            content=self._format_tool_result(result)
+                        )
+                    )
+                    print("✅ 工具执行完成")
+
+                    # 显示工具结果
+                    if isinstance(result, dict):
+                        if result.get("stdout"):
+                            print(f"\n📄 工具结果:\n{result['stdout']}")
+                        elif result.get("output"):
+                            print(f"\n📄 工具结果:\n{result['output']}")
+                        elif result.get("stderr"):
+                            print(f"\n⚠️ 错误输出:\n{result['stderr']}")
+                    elif isinstance(result, str) and result.strip():
+                        print(f"\n📄 工具结果:\n{result}")
+
+                except Exception as e:
+                    import traceback
+                    error_msg = f"Tool execution error: {e!s}\n\n📋 详细堆栈信息：\n{traceback.format_exc()}"
+                    tool_results.append(
+                        ToolResultContent(
+                            tool_use_id=tool_call.id,
+                            content=error_msg
+                        )
+                    )
+                    print(f"❌ 工具执行失败: {e}")
+
+            # 将工具结果添加到消息历史
+            await self.create_event(
+                Role.User,
+                EventType.ToolResult,
+                tool_results
+            )
+
+            # 累积工具结果
+            if final_response.tool_results is None:
+                final_response.tool_results = []
+            final_response.tool_results.extend([r.content for r in tool_results])
+
+            # 如果达到 MaxTokens 或其他停止原因，结束循环
+            if response.stop_reason in [StopReason.MaxTokens, StopReason.Refusal]:
+                break
+
+        return final_response
 
     async def create_event(
         self,

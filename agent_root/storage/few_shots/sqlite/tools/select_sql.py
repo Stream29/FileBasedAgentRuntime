@@ -1,9 +1,11 @@
+import os
+import sqlite3
 from collections.abc import Generator
 from typing import Any
-import sqlite3
-import os
+
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
+
 
 class SelectSQLTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
@@ -53,7 +55,7 @@ class SelectSQLTool(Tool):
                         column_name = columns[i] if i < len(columns) else f"column_{i}"
                         row_dict[column_name] = value
                     formatted_rows.append(row_dict)
-                
+
                 # Standard SQL database JSON output format
                 sql_result = {
                     "query": select_sql,
@@ -63,10 +65,10 @@ class SelectSQLTool(Tool):
                     "row_count": row_count,
                     "status": "success"
                 }
-                
+
                 # Text message with standard SQL output format
                 text_output = f"Table: {table_name}\nColumns: {', '.join(columns)}\nRows: {row_count}\nData: {formatted_rows}"
-                
+
                 yield self.create_text_message(text_output)
                 yield self.create_json_message(sql_result)
         except sqlite3.OperationalError as e:
@@ -76,4 +78,4 @@ class SelectSQLTool(Tool):
         except Exception as e:
             msg = f"Failed to execute select operation: {e}"
             yield self.create_text_message(msg)
-            yield self.create_json_message({"status": "error", "error": str(e)}) 
+            yield self.create_json_message({"status": "error", "error": str(e)})

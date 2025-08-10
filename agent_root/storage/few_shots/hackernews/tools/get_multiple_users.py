@@ -158,11 +158,11 @@ class GetMultipleUsersTool(Tool):
 
                 except requests.RequestException as e:
                     failed_users.append(
-                        {"username": username, "error": f"Network error: {str(e)}"}
+                        {"username": username, "error": f"Network error: {e!s}"}
                     )
                 except Exception as e:
                     failed_users.append(
-                        {"username": username, "error": f"Error: {str(e)}"}
+                        {"username": username, "error": f"Error: {e!s}"}
                     )
 
             # Create formatted text response
@@ -183,7 +183,7 @@ class GetMultipleUsersTool(Tool):
                     text_response += f"   • About: {about_text}\n"
 
                 if include_submissions and user.get("submission_details"):
-                    text_response += f"   • Recent Submissions:\n"
+                    text_response += "   • Recent Submissions:\n"
                     for sub in user["submission_details"]:
                         text_response += f"     - {sub['title']} (ID: {sub['id']}, Score: {sub['score']})\n"
 
@@ -206,4 +206,4 @@ class GetMultipleUsersTool(Tool):
             )
 
         except Exception as e:
-            yield self.create_text_message(f"An error occurred: {str(e)}")
+            yield self.create_text_message(f"An error occurred: {e!s}")

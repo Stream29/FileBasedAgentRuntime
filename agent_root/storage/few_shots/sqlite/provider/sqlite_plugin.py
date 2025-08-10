@@ -1,8 +1,10 @@
-from typing import Any
-from dify_plugin import ToolProvider
-from dify_plugin.errors.tool import ToolProviderCredentialValidationError
 import os
 import sqlite3
+from typing import Any
+
+from dify_plugin import ToolProvider
+from dify_plugin.errors.tool import ToolProviderCredentialValidationError
+
 
 class SQLiteConnectionManager:
     def __init__(self, database_path: str, timeout: int = 30):

@@ -31,8 +31,8 @@ class ToolsRegistry:
             {
                 "name": "edit_file",
                 "description": (
-                    "Edit specific lines in an existing file. "
-                    "Useful for modifying parts of large files without rewriting everything."
+                    "Replace the entire content of an existing file. "
+                    "Use shell command for small edits or viewing file content first."
                 ),
                 "input_schema": {
                     "type": "object",
@@ -41,20 +41,12 @@ class ToolsRegistry:
                             "type": "string",
                             "description": "File path relative to agent_root",
                         },
-                        "start_line": {
-                            "type": "integer",
-                            "description": "Starting line number (1-indexed)",
-                        },
-                        "end_line": {
-                            "type": "integer",
-                            "description": "Ending line number (inclusive)",
-                        },
-                        "new_content": {
+                        "content": {
                             "type": "string",
-                            "description": "New content for the specified lines",
+                            "description": "Complete new content for the file",
                         },
                     },
-                    "required": ["path", "start_line", "end_line", "new_content"],
+                    "required": ["path", "content"],
                 },
             },
             {

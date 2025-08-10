@@ -1,0 +1,1461 @@
+/Users/stream/ACodeSpace/demo/FileSystemBasedAgent/.venv/bin/python /Users/stream/ACodeSpace/demo/FileSystemBasedAgent/main.py
+============================================================
+🤖 FileSystem-based Agent - 交互式模式
+============================================================
+• 输入任务描述，Agent 会执行并回复
+• 输入 'exit' 或 'quit' 退出
+• 输入 'clear' 清空对话历史
+• 输入 'help' 查看可用命令
+• 输入 'status' 查看当前 Agent 状态
+• 按 Ctrl+C 可以中断当前任务
+• 🚀 开发模式：显示详细输出，智能去重
+============================================================
+
+👤 User: 你的思路有问题。初始化插件应该调用dify cli，我已经为你预装好了，你去试试看
+
+🤖 Agent: 你说得对！我应该使用 Dify CLI 来初始化插件。让我先检查 Dify CLI 是否已安装，然后用它来正确创建 GitHub 搜索插件。
+🔧 执行命令: which dify
+🔁 重复执行: 🔧 执行命令: which dify2025-08-10 17:48:00,760 - FileSystemAgent - INFO - Executing: which dify
+2025-08-10 17:48:00,988 - FileSystemAgent - INFO - Command completed with exit code: 0
+
+✅ Exit code: N/A
+Output:
+/opt/homebrew/bin/dify2025-08-10 17:48:01,042 - FileSystemAgent - INFO - shell completed
+
+🔧 执行命令: dify --version
+🔁 重复执行: 🔧 执行命令: dify --version2025-08-10 17:48:04,367 - FileSystemAgent - INFO - Executing: dify --version
+2025-08-10 17:48:09,673 - FileSystemAgent - INFO - Command completed with exit code: 0
+2025-08-10 17:48:09,729 - FileSystemAgent - INFO - shell completed
+
+✅ 读取到 17 行内容
+🔧 执行命令: dify version
+🔁 重复执行: 🔧 执行命令: dify version2025-08-10 17:48:13,425 - FileSystemAgent - INFO - Executing: dify version
+2025-08-10 17:48:18,670 - FileSystemAgent - INFO - Command completed with exit code: 0
+
+✅ Exit code: N/A
+Output:
+dify versi</demo/FileSystemBasedAgent/agent_root$ dify versio                ...2025-08-10 17:48:18,727 - FileSystemAgent - INFO - shell completed
+很好！Dify CLI v0.1.3 已安装。现在让我先删除之前手动创建的文件，然后使用 Dify CLI 正确初始化插件：
+🔧 执行命令: rm -rf workspace/github_search
+🔁 重复执行: 🔧 执行命令: rm -rf workspace/github_search2025-08-10 17:48:23,263 - FileSystemAgent - INFO - Executing: rm -rf workspace/github_search
+2025-08-10 17:48:23,485 - FileSystemAgent - INFO - Command completed with exit code: 0
+2025-08-10 17:48:23,542 - FileSystemAgent - INFO - shell completed
+
+✅ Exit code: N/A
+Output:
+rm -rf wor</demo/FileSystemBasedAgent/agent_root$ rm -rf work                ...
+2025-08-10 17:48:27,455 - FileSystemAgent - INFO - Executing: cd workspace && dify plugin init --help
+🔧 执行命令: cd workspace && dify plugin init --help
+🔁 重复执行: 🔧 执行命令: cd workspace && dify plugin init --help2025-08-10 17:48:32,700 - FileSystemAgent - INFO - Command completed with exit code: 0
+2025-08-10 17:48:32,755 - FileSystemAgent - INFO - shell completed
+
+✅ 读取到 42 行内容完美！现在我使用 Dify CLI 的 --quick 参数来非交互式地创建 GitHub 搜索插件：
+2025-08-10 17:48:38,011 - FileSystemAgent - INFO - Executing: cd workspace && dify plugin init --quick --name github_search --category tool --author dify_developer --description "GitHub API tool plugin with OAuth authentication for searching repositories, users and more" --language python --allow-tool
+🔧 执行命令: cd workspace && dify plugin init --quick --name github_search --category tool --author dify_developer --description "GitHub API tool plugin with OAuth authentication for searching repositories, users and more" --language python --allow-tool
+🔁 重复执行: 🔧 执行命令: cd workspace && dify plugin init --quick --name github_search --category tool --author dify_developer --description "GitHub API tool plugin with OAuth authentication for searching repositories, users and more" --language python --allow-tool2025-08-10 17:48:38,232 - FileSystemAgent - INFO - Command completed with exit code: 1
+2025-08-10 17:48:38,289 - FileSystemAgent - INFO - shell completed
+
+✅ 读取到 1068 字符我已经在 workspace 目录中了，不需要再 cd：
+
+我已经在
+
+workspace 目录中了，不需要再
+
+cd：
+🔧 执行命令: dify plugin init --quick --name github_search --category tool --author dify_developer --description "GitHub API tool plugin with OAuth authentication for searching repositories, users and more" --language python --allow-tool
+🔁 重复执行: 🔧 执行命令: dify plugin init --quick --name github_search --category tool --author dify_developer --description "GitHub API tool plugin with OAuth authentication for searching repositories, users and more" --language python --allow-tool2025-08-10 17:48:43,436 - FileSystemAgent - INFO - Executing: dify plugin init --quick --name github_search --category tool --author dify_developer --description "GitHub API tool plugin with OAuth authentication for searching repositories, users and more" --language python --allow-tool
+2025-08-10 17:48:48,695 - FileSystemAgent - INFO - Command completed with exit code: 0
+
+✅ 读取到 1114 字符2025-08-10 17:48:48,752 - FileSystemAgent - INFO - shell completed
+太好了！Dify CLI 成功创建了插件。让我查看生成的文件结构：
+
+太好了！Dify CLI 成功创建了插件。让我查看生成的文件结构：
+🔧 执行命令: tree github_search -I '__pycache__'
+🔁 重复执行: 🔧 执行命令: tree github_search -I '__pycache__'2025-08-10 17:48:53,371 - FileSystemAgent - INFO - Executing: tree github_search -I '__pycache__'
+2025-08-10 17:48:53,585 - FileSystemAgent - INFO - Command completed with exit code: 127
+2025-08-10 17:48:53,642 - FileSystemAgent - INFO - shell completed
+
+✅ Exit code: N/A
+Output:
+</demo/FileSystemBasedAgent/agent_root/workspace$ t                         r...
+🔧 执行命令: ls -la github_search/
+🔁 重复执行: 🔧 执行命令: ls -la github_search/2025-08-10 17:48:57,231 - FileSystemAgent - INFO - Executing: ls -la github_search/
+2025-08-10 17:48:57,461 - FileSystemAgent - INFO - Command completed with exit code: 0
+2025-08-10 17:48:57,518 - FileSystemAgent - INFO - shell completed
+
+✅ 读取到 19 行内容
+🔧 执行命令: cat github_search/manifest.yaml
+🔁 重复执行: 🔧 执行命令: cat github_search/manifest.yaml2025-08-10 17:49:00,947 - FileSystemAgent - INFO - Executing: cat github_search/manifest.yaml
+2025-08-10 17:49:01,170 - FileSystemAgent - INFO - Command completed with exit code: 0
+
+✅ 读取到 39 行内容2025-08-10 17:49:01,228 - FileSystemAgent - INFO - shell completed
+现在让我查看 CLI 生成的 provider 文件，了解它的结构：
+
+现在让我查看 CLI 生成的 provider 文件，了解它的结构：
+
+现在让我查看
+
+CLI 生成的
+
+provider 文件，了解它的结
+
+构：
+🔧 执行命令: cat github_search/provider/github_search.yaml
+🔁 重复执行: 🔧 执行命令: cat github_search/provider/github_search.yaml2025-08-10 17:49:06,382 - FileSystemAgent - INFO - Executing: cat github_search/provider/github_search.yaml
+2025-08-10 17:49:06,604 - FileSystemAgent - INFO - Command completed with exit code: 0
+2025-08-10 17:49:06,661 - FileSystemAgent - INFO - shell completed
+2025-08-10 17:49:11,285 - FileSystemAgent - INFO - Executing: cat github_search/provider/github_search.py
+
+🔧 执行命令: cat github_search/provider/github_search.py
+🔁 重复执行: 🔧 执行命令: cat github_search/provider/github_search.py2025-08-10 17:49:11,512 - FileSystemAgent - INFO - Command completed with exit code: 0
+2025-08-10 17:49:11,570 - FileSystemAgent - INFO - shell completed
+现在让我查看工具文件：
+
+现在让我查看工具文件：
+
+现在让我查看工具文件
+
+：
+
+现在让
+
+我查看工具文件：
+🔧 执行命令: cat github_search/tools/github_search.yaml
+🔁 重复执行: 🔧 执行命令: cat github_search/tools/github_search.yaml2025-08-10 17:49:16,606 - FileSystemAgent - INFO - Executing: cat github_search/tools/github_search.yaml
+2025-08-10 17:49:16,824 - FileSystemAgent - INFO - Command completed with exit code: 0
+2025-08-10 17:49:16,877 - FileSystemAgent - INFO - shell completed
+
+🔧 执行命令: cat github_search/tools/github_search.py
+🔁 重复执行: 🔧 执行命令: cat github_search/tools/github_search.py2025-08-10 17:49:20,903 - FileSystemAgent - INFO - Executing: cat github_search/tools/github_search.py
+2025-08-10 17:49:21,126 - FileSystemAgent - INFO - Command completed with exit code: 0
+2025-08-10 17:49:21,181 - FileSystemAgent - INFO - shell completed
+很好！现在我了解了 Dify CLI 生成的结构。让我查看 GUIDE.md 了解开发指南：
+
+很好！现在我了解了 Dify CLI 生成的结构。让我查看 GUIDE.md 了解开发指南：
+
+很好！现在我了解了
+
+Dify CLI 生成的结构。让我查看
+
+GUIDE.md 了解开发指南：
+
+很好！现在我了解了
+
+Dify CLI 生成的结构。让我查看 GUIDE.md 了解开发指南：
+🔧 执行命令: head -50 github_search/GUIDE.md
+🔁 重复执行: 🔧 执行命令: head -50 github_search/GUIDE.md2025-08-10 17:49:28,071 - FileSystemAgent - INFO - Executing: head -50 github_search/GUIDE.md
+2025-08-10 17:49:28,297 - FileSystemAgent - INFO - Command completed with exit code: 0
+
+✅ 读取到 44 行内容2025-08-10 17:49:28,355 - FileSystemAgent - INFO - shell completed
+现在我需要根据 Google Calendar 插件的示例来修改这个插件，实现 OAuth 认证。让我先参考 Google Calendar 的 OAuth 实现：
+
+现在我需要根据 Google Calendar 插件的示例来修改这个插件，实现 OAuth 认证。让我先参考 Google Calendar 的 OAuth 实现：
+
+现在我需要根据
+
+Google Calendar 插件的示例来修改这个插件，实现
+
+OAuth 认证。让我先参考 Google Calendar 的 OAuth 实现：
+
+现在我需要根据
+
+Google Calendar 插件的示例来修改这个插件，实现 OAuth 认证。让我先参考 Google Calendar 的 OAuth 实现：
+
+现在我需要根据
+
+Google Calendar 插件的示例来修改这个插件，实现 OAuth 认证。让我先参考 Google Calendar 的 OAuth 实现：
+
+现在我需要根据
+
+Google Calendar 插件的示例来修改这个插件，实现 OAuth 认证。让我先参考 Google Calendar 的 OAuth 实现：
+2025-08-10 17:49:38,806 - FileSystemAgent - INFO - Executing: grep -A 20 "credentials_schema" ../storage/few_shots/google_calendar/provider/google_calendar.yaml
+🔧 执行命令: grep -A 20 "credentials_schema" ../storage/few_shots/google_calendar/provider/google_calendar.yaml
+🔁 重复执行: 🔧 执行命令: grep -A 20 "credentials_schema" ../storage/few_shots/google_calendar/provider/google_calendar.yaml2025-08-10 17:49:39,031 - FileSystemAgent - INFO - Command completed with exit code: 0
+2025-08-10 17:49:39,088 - FileSystemAgent - INFO - shell completed
+
+✅ 读取到 21 行内容现在让我修改 provider 文件以支持 OAuth 认证。首先更新 YAML 配置：
+
+现在让我修改 provider 文件以支持 OAuth 认证。首先更新 YAML 配置：
+
+现在让我修改
+
+provider 文件以支持 OAuth 认证。首先更新 YAML 配置：
+
+现在让我修改 provider 文件以支持 OAuth 认证。首先更新 YAML 配置：
+
+现在让我修改 provider 文件以支持 OAuth 认证。首先更新 YAML 配置：
+
+现在让我修改 provider 文件以支持 OAuth 认证。首先更新 YAML 配置：
+
+现在让我修改
+
+provider 文件以支持 OAuth 认证。首先更新 YAML 配置：
+
+现在让我修改 provider 文件以支持 OAuth 认证。首先更新 YAML 配置：
+
+现在让我修改 provider 文件以支持 OAuth 认证。首先更新 YAML 配置：
+
+现在让我修改 provider 文件以支持 OAuth 认证。首先更新 YAML 配置：
+
+现在让我修改 provider 文件以支持 OAuth 认证。首先更新 YAML 配置：
+
+现在让我修改 provider 文件以支持 OAuth 认证。首先更新 YAML 配置：
+
+现在让我修改 provider 文件以支持 OAuth 认证。首先更新 YAML 配置：
+
+现在让我修改 provider 文件以支持 OAuth 认证。首先更新 YAML 配置：
+
+现在让我修改 provider 文件以支持 OAuth 认证。首先更新 YAML 配置：
+
+现在让我修改 provider 文件以支持 OAuth 认证。首先更新 YAML 配置：
+
+现在让我修改 provider 文件以支持 OAuth 认证。首先更新 YAML 配置：
+
+现在让我修改 provider 文件以支持 OAuth 认证。首先更新 YAML 配置：
+2025-08-10 17:49:58,611 - FileSystemAgent - INFO - edit_file completed
+✏️ 编辑文件: workspace/github_search/provider/github_search.yaml [行 1-17]
+✅ {
+  "success": true,
+  "path": "workspace/github_search/provider/github_search.yaml",
+  "lines_repla...现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现 OAuth：
+
+现在更新 provider 的 Python 代码来实现
+🔁 重复执行: 🔧 执行命令: grep -A 20 "credentials_schema" ../storage/few_shots/google_calendar/provider/google_calendar.yaml
+🔁 重复执行: 🔧 执行命令: head -50 github_search/GUIDE.md
+🔁 重复执行: 🔧 执行命令: cat github_search/tools/github_search.py
+🔁 重复执行: 🔧 执行命令: cat github_search/tools/github_search.yaml
+🔁 重复执行: 🔧 执行命令: cat github_search/provider/github_search.py
+🔁 重复执行: 🔧 执行命令: cat github_search/provider/github_search.yaml
+🔁 重复执行: 🔧 执行命令: cat github_search/manifest.yaml
+🔁 重复执行: 🔧 执行命令: ls -la github_search/
+🔁 重复执行: 🔧 执行命令: tree github_search -I '__pycache__'
+🔁 重复执行: 🔧 执行命令: dify plugin init --quick --name github_search --category tool --author dify_developer --description "GitHub API tool plugin with OAuth authentication for searching repositories, users and more" --language python --allow-tool
+🔁 重复执行: 🔧 执行命令: cd workspace && dify plugin init --quick --name github_search --category tool --author dify_developer --description "GitHub API tool plugin with OAuth authentication for searching repositories, users and more" --language python --allow-tool
+🔁 重复执行: 🔧 执行命令: cd workspace && dify plugin init --help
+🔁 重复执行: 🔧 执行命令: rm -rf workspace/github_search
+🔁 重复执行: 🔧 执行命令: dify version
+🔁 重复执行: 🔧 执行命令: dify --version
+🔁 重复执行: 🔧 执行命令: which dify
+👤 User:

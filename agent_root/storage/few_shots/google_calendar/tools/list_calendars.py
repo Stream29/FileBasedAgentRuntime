@@ -154,11 +154,11 @@ class ListCalendarsTool(Tool):
                 data={"error": str(e)},
                 status=InvokeMessage.LogMessage.LogStatus.ERROR,
             )
-            yield self.create_text_message(f"Network error occurred: {str(e)}")
+            yield self.create_text_message(f"Network error occurred: {e!s}")
         except Exception as e:
             yield self.create_log_message(
                 label="Unexpected Error",
                 data={"error": str(e), "type": type(e).__name__},
                 status=InvokeMessage.LogMessage.LogStatus.ERROR,
             )
-            yield self.create_text_message(f"An unexpected error occurred: {str(e)}")
+            yield self.create_text_message(f"An unexpected error occurred: {e!s}")

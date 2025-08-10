@@ -18,17 +18,13 @@ class FileEditor:
         self.agent_root = agent_root.resolve()
         self.logger = logger
 
-    def edit_file(
-        self, path: str, start_line: int, end_line: int, new_content: str
-    ) -> dict[str, Any]:
+    def edit_file(self, path: str, content: str) -> dict[str, Any]:
         """
-        编辑文件的指定行
+        Replace the entire content of an existing file.
 
         Args:
             path: 文件路径（相对于 agent_root）
-            start_line: 起始行号（1-indexed）
-            end_line: 结束行号（包含）
-            new_content: 新内容
+            content: 文件的完整新内容
 
         Returns:
             操作结果字典
@@ -48,59 +44,32 @@ class FileEditor:
             if not resolved_path.is_file():
                 raise ValueError(f"Path {path} is not a file")
 
-            # 读取文件
+            # 获取原文件信息（用于日志）
+            original_size = resolved_path.stat().st_size
             with open(resolved_path, encoding="utf-8") as f:
-                lines = f.readlines()
+                original_lines = len(f.readlines())
 
-            # 验证行号
-            total_lines = len(lines)
-            if start_line < 1 or start_line > total_lines:
-                raise ValueError(
-                    f"start_line {start_line} out of range (file has {total_lines} lines)"
-                )
-            if end_line < start_line:
-                raise ValueError("end_line must be >= start_line")
-            if end_line > total_lines:
-                raise ValueError(
-                    f"end_line {end_line} out of range (file has {total_lines} lines)"
-                )
-
-            # 准备新内容
-            new_lines = new_content.split("\n")
-            # 确保每行都有换行符（除了可能的最后一行）
-            for i in range(len(new_lines) - 1):
-                if not new_lines[i].endswith("\n"):
-                    new_lines[i] += "\n"
-            # 最后一行的处理
-            if new_lines and not new_content.endswith("\n"):
-                # 如果原内容没有以换行结尾，最后一行也不加
-                pass
-            elif new_lines:
-                # 如果原内容以换行结尾，最后一行也加上
-                new_lines[-1] += "\n"
-
-            # 构建新文件内容
-            result_lines = lines[: start_line - 1] + new_lines + lines[end_line:]
-
-            # 写回文件
+            # 写入新内容
             with open(resolved_path, "w", encoding="utf-8") as f:
-                f.writelines(result_lines)
+                f.write(content)
+
+            # 计算新文件信息
+            new_size = resolved_path.stat().st_size
+            new_lines = len(content.splitlines())
 
             # 记录操作
             result = {
                 "success": True,
                 "path": str(path),
-                "lines_replaced": end_line - start_line + 1,
-                "new_lines": len(new_lines),
-                "total_lines": len(result_lines),
+                "original_lines": original_lines,
+                "new_lines": new_lines,
+                "size_change": new_size - original_size,
             }
 
             self.logger.log_operation(
                 "edit_file",
                 {
                     "path": str(path),
-                    "start_line": start_line,
-                    "end_line": end_line,
                     "resolved_path": str(resolved_path),
                 },
                 result,
@@ -111,7 +80,7 @@ class FileEditor:
         except Exception as e:
             self.logger.log_operation(
                 "edit_file",
-                {"path": str(path), "start_line": start_line, "end_line": end_line},
+                {"path": str(path)},
                 None,
                 str(e),
             )

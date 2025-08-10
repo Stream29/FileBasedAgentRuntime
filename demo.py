@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Demo script to showcase FileSystem-based Agent capabilities."""
 
-import os
 import sys
 from pathlib import Path
 
@@ -14,14 +13,14 @@ from src.agent import FileSystemAgent
 def demo_without_llm():
     """Demonstrate agent capabilities without LLM."""
     print("=== FileSystem-based Agent Demo ===\n")
-    
+
     project_root = Path(__file__).parent
     agent = FileSystemAgent("demo", "context_window_main.md", project_root)
-    
+
     # Demo 1: File operations
     print("📁 Demo 1: File Operations")
     print("-" * 40)
-    
+
     # Create a project structure
     agent.execute_tool("write_file", {
         "file_path": "/workspace/project/main.py",
@@ -40,7 +39,7 @@ if __name__ == "__main__":
 '''
     })
     print("✓ Created main.py")
-    
+
     agent.execute_tool("write_file", {
         "file_path": "/workspace/project/test_main.py",
         "content": '''import main
@@ -60,53 +59,53 @@ if __name__ == "__main__":
 '''
     })
     print("✓ Created test_main.py")
-    
+
     # List the project directory
     items = agent.execute_tool("list_directory", {"dir_path": "/workspace/project"})
     print(f"✓ Project contains {len(items)} files")
-    
+
     # Demo 2: Command execution
     print("\n💻 Demo 2: Command Execution")
     print("-" * 40)
-    
+
     # Run the main script
     result = agent.execute_tool("execute_command", {
         "command": "python main.py",
         "working_dir": "/workspace/project"
     })
-    print(f"✓ Executed main.py")
+    print("✓ Executed main.py")
     print(f"  Output: {result['stdout'].strip()}")
-    
+
     # Run tests
     result = agent.execute_tool("execute_command", {
         "command": "python test_main.py",
         "working_dir": "/workspace/project"
     })
-    print(f"✓ Executed tests")
+    print("✓ Executed tests")
     print(f"  Output: {result['stdout'].strip()}")
-    
+
     # Demo 3: Context synchronization
     print("\n🔄 Demo 3: Context Synchronization")
     print("-" * 40)
-    
+
     # Check conversation history size
     print(f"📊 Conversation history items: {len(agent.conversation_history)}")
-    
+
     # Sync context
     sync_result = agent.execute_tool("sync_context", {})
-    print(f"✓ Context synchronized")
+    print("✓ Context synchronized")
     print(f"  Hot data items: {sync_result['hot_data_items']}")
     print(f"  Cold data archived: {sync_result['cold_data_archived']}")
     if sync_result['archive_path']:
         print(f"  Archive file: {sync_result['archive_path']}")
-    
+
     # Check conversation history after sync
     print(f"📊 Conversation history after sync: {len(agent.conversation_history)}")
-    
+
     # Demo 4: Context window content
     print("\n📄 Demo 4: Context Window")
     print("-" * 40)
-    
+
     context_content = agent.execute_tool("read_file", {
         "file_path": "/context_window_main.md"
     })
@@ -114,7 +113,7 @@ if __name__ == "__main__":
     print("```")
     print(context_content)
     print("```")
-    
+
     print("\n✨ Demo completed!")
     print("\n💡 To run with LLM:")
     print('   export ANTHROPIC_API_KEY=your_key')
