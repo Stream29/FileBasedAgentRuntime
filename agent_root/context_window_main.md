@@ -1,184 +1,433 @@
-# Current Task
-重新开发 GitHub API 集成插件，遵循最佳实践，实现完整功能
+# Context Window - Tools插件开发专用
 
-## 当前进度
-- ✅ 创建新插件项目 github_api
-- ✅ 编写完整 README.md 文档
-- ✅ 创建 PRIVACY.md 隐私政策
-- ✅ 更新 guideline.md 添加插件开发规范
-- ✅ 更新 manifest.yaml 配置
-- ✅ 配置 provider/github_api.yaml（OAuth配置）
-- ✅ 实现 provider/github_api.py（OAuth认证）
-- ✅ 删除模板工具文件
-- ✅ 创建 search_repositories 工具
-- 🔄 需要创建其他3个工具
-- ⏳ 测试插件功能
+## 🚀 准备状态：已就绪，等待用户需求
 
-# Working Memory
+### 开发环境检查 ✅
+- [x] Dify CLI工具已安装
+- [x] Python ≥ 3.12 环境就绪
+- [x] 工作目录：agent_root/workspace/
+- [x] 参考文档已加载到storage/documents/
+- [x] 示例代码已准备在storage/few_shots/
 
-## 项目状态
-- 位置: workspace/github_api
-- 已完成 OAuth 认证实现（provider 层）
-- 已实现第一个工具 search_repositories
+### 我掌握的核心知识
 
-## 已完成的文件
-1. **provider/github_api.yaml** (67行)
-   - 完整的 OAuth 配置
-   - 包含 client_id, client_secret 配置
-   - 定义了4个工具的引用
-
-2. **provider/github_api.py** (135行)
-   - 实现了完整的 OAuth 流程
-   - `_oauth_get_authorization_url`: 生成授权URL
-   - `_oauth_get_credentials`: 代码换token
-   - `_oauth_refresh_credentials`: GitHub token不过期
-   - `_validate_credentials`: 验证token有效性
-
-3. **tools/search_repositories.yaml** (107行)
-   - 完整的参数定义（query, sort, order, per_page）
-   - 多语言支持（en_US, zh_Hans, ja_JP, pt_BR）
-   - 详细的参数说明和验证规则
-
-4. **tools/search_repositories.py** (148行)
-   - 完整的搜索实现
-   - 错误处理（401, 403, 422等）
-   - 同时返回文本和JSON格式结果
-   - 处理GitHub API速率限制
-
-## 需要创建的工具
-1. ✅ tools/search_repositories.yaml + .py (已完成)
-2. ⏳ tools/search_users.yaml + .py  
-3. ⏳ tools/get_repository.yaml + .py
-4. ⏳ tools/get_user.yaml + .py
-
-## 实现经验总结
-1. **参数验证**：
-   - 始终验证必需参数
-   - 对数值参数进行范围检查
-   - 提供合理的默认值
-
-2. **错误处理模式**：
-   ```python
-   if response.status_code == 401:
-       yield self.create_text_message("Error: Invalid token")
-       return
-   elif response.status_code == 403:
-       # 检查速率限制
-       if response.headers.get("X-RateLimit-Remaining") == "0":
-           yield self.create_text_message("Rate limit exceeded")
-   ```
-
-3. **返回格式**：
-   - 文本消息：格式化的人类可读输出
-   - JSON消息：结构化数据供程序使用
-
-4. **GitHub API特点**：
-   - 搜索API的参数：q, sort, order, per_page
-   - 响应包含 total_count 和 items
-   - 需要处理速率限制头部
-
-## GitHub API 实现要点
-1. **请求头**：
-   ```python
-   headers = {
-       "Authorization": f"Bearer {access_token}",
-       "Accept": "application/vnd.github.v3+json"
-   }
-   ```
-
-2. **错误处理**：
-   - 401: 未认证
-   - 403: 权限不足或速率限制
-   - 404: 资源不存在
-   - 422: 参数错误
-
-3. **API 端点**：
-   - 搜索仓库: GET /search/repositories?q={query}
-   - 搜索用户: GET /search/users?q={query}
-   - 获取仓库: GET /repos/{owner}/{repo}
-   - 获取用户: GET /users/{username}
-
-# Active Observations
-
-## 最新进展
-- 成功删除了模板工具文件
-- 创建了 search_repositories 工具的完整实现
-- 工具包含详细的参数验证和错误处理
-- 支持4种语言的国际化
-
-## 从实践中学到的经验
-1. **工具配置要点**：
-   - form: llm 表示参数由AI推理
-   - form: form 表示用户手动填写
-   - select类型需要定义options
-   - number类型可以设置min/max
-
-2. **实现细节**：
-   - GitHub搜索API不需要sort参数时传"best-match"会报错，需要传None
-   - 需要过滤掉params中的None值
-   - 速率限制信息在响应头的X-RateLimit-Remaining中
-
-3. **返回格式最佳实践**：
-   - 文本消息用Markdown格式化，便于阅读
-   - JSON消息包含完整数据，便于程序处理
-   - 提取关键字段，避免返回过多无用信息
-
-## 下一步计划
-1. 创建 search_users 工具
-2. 创建 get_repository 工具
-3. 创建 get_user 工具
-4. 测试整个插件
-5. 打包插件
-
-# Knowledge
-
-## Dify 插件系统核心知识
-1. **插件生命周期**：初始化 → 认证 → 调用 → 返回结果
-2. **权限系统**：tool、model、storage、endpoint 等权限需显式声明
-3. **消息系统**：支持 text、json、link、image、blob、variable、log 等类型
-4. **双向调用**：插件可反向调用 Dify 的 AI 模型、工具、知识库
-
-## GitHub API 知识
-1. **认证方式**：OAuth 2.0，使用 personal access token
-2. **API 限制**：认证用户 5000 请求/小时，未认证 60 请求/小时
-3. **搜索 API**：支持多种搜索类型和过滤器
-4. **错误码**：401（未认证）、403（禁止）、404（不存在）、422（参数错误）
-
-## Python 开发技巧
-1. **Generator 模式**：使用 yield 返回多个消息
-2. **类型注解**：使用 typing 模块提供类型提示
-3. **异常处理**：使用 try-except 捕获所有可能的错误
-4. **超时设置**：requests 调用设置 timeout 参数
-
-## 工具实现模板
-```python
-from dify_plugin import Tool
-from dify_plugin.entities.tool import ToolInvokeMessage
-
-class ToolName(Tool):
-    def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
-        # 1. 获取认证
-        access_token = self.runtime.credentials.get("access_token")
-        
-        # 2. 参数验证
-        param = tool_parameters.get("param")
-        if not param:
-            yield self.create_text_message("Error: param required")
-            return
-        
-        # 3. API 调用
-        try:
-            response = requests.get(url, headers=headers, timeout=30)
-            # 4. 返回结果
-            yield self.create_text_message(text)
-            yield self.create_json_message(data)
-        except Exception as e:
-            yield self.create_text_message(f"Error: {str(e)}")
+#### 1. Tools插件文件结构
+```
+plugin_name/
+├── manifest.yaml          # 必需：插件元信息
+├── main.py               # 必需：固定入口（from dify_plugin import Plugin）
+├── requirements.txt      # Python依赖
+├── README.md            # 使用说明
+├── PRIVACY.md           # 隐私政策（发布必需）
+├── _assets/             
+│   └── icon.svg         # 插件图标
+├── provider/            
+│   ├── provider_name.yaml  # 必需：provider配置
+│   └── provider_name.py    # OAuth必需：认证实现
+└── tools/               
+    ├── tool1.yaml       # 必需：工具配置
+    ├── tool1.py         # 必需：工具实现
+    └── ...
 ```
 
-# Next Steps
-1. 创建 search_users 工具
-2. 创建 get_repository 工具  
-3. 创建 get_user 工具
-4. 测试插件功能
-5. 打包发布
+#### 2. 认证方式决策树
+```
+需要用户特定数据？
+  ├─ 是 → OAuth 2.0（复杂但安全）
+  └─ 否 → API Key（简单直接）
+          ├─ 有免费tier → 告知限制
+          └─ 纯付费 → 说明定价
+```
+
+#### 3. 常用API模式库
+
+##### 3.1 REST API调用模板
+```python
+headers = {"Authorization": f"Bearer {api_key}"}
+response = requests.get(url, headers=headers, timeout=30)
+response.raise_for_status()
+data = response.json()
+```
+
+##### 3.2 错误处理标准
+- 401: 认证失败 → "请检查API密钥"
+- 403: 权限不足 → "需要更高权限"
+- 404: 资源不存在 → "未找到指定资源"
+- 429: 速率限制 → 检查X-RateLimit头
+- 500+: 服务器错误 → "服务暂时不可用"
+
+##### 3.3 参数验证模板
+```python
+# 必需参数
+if not param:
+    yield self.create_text_message("Error: param is required")
+    return
+
+# 数值范围
+if not (1 <= value <= 100):
+    yield self.create_text_message("Error: value must be between 1-100")
+    return
+```
+
+## 📚 已收集的API信息库
+
+### 常用API速查
+1. **OpenAI**: Bearer token认证，有速率限制
+2. **Google APIs**: OAuth 2.0，scope很重要
+3. **GitHub**: token不过期，设置expires_at=-1
+4. **Slack**: OAuth，需要特定scope
+5. **AWS**: 签名认证，较复杂
+
+### 已知坑点
+1. **dify plugin init必须加--quick**：否则会卡在交互
+2. **GitHub搜索API**：sort参数不传而不是"best-match"
+3. **中文支持**：确保response.encoding='utf-8'
+4. **OAuth state**：用secrets.token_urlsafe(16)生成
+
+### 🚨 Dify YAML配置详细规定
+
+#### 1. provider.yaml 关键细节
+
+##### 1.1 字段顺序灵活但要完整
+```yaml
+# extra字段位置灵活（可在开头或结尾）
+extra:
+  python:
+    source: provider/provider_name.py  # 必须指向.py文件
+
+identity:
+  name: provider_name  # 必须与文件名前缀一致
+  author: your_name
+  label:  # 多语言必需，至少要有en_US
+    en_US: Display Name
+    zh_Hans: 显示名称  # ⚠️ 是zh_Hans不是zh_CN！
+    ja_JP: 表示名     # ⚠️ 是ja_JP不是ja_Jp！
+    pt_BR: Nome
+```
+
+##### 1.2 认证方式严格区分
+```yaml
+# 方式1：API Key认证 - 使用credentials_for_provider
+credentials_for_provider:
+  api_key:
+    type: secret-input  # 敏感信息必须用secret-input
+    required: true
+    label:
+      en_US: API Key
+    help:  # 可选，提供获取凭据的指导
+      en_US: Get your API key from dashboard
+      zh_Hans: 从控制台获取API密钥
+    url: https://example.com/api-keys  # help的链接
+    
+# 方式2：OAuth认证 - 使用oauth_schema
+oauth_schema:
+  client_schema:  # 应用级配置（客户端ID/密钥）
+    - name: client_id
+      type: secret-input
+      required: true
+  credentials_schema:  # 用户级凭据（token）
+    - name: access_token
+      type: secret-input
+    - name: refresh_token  
+      type: secret-input
+```
+
+##### 1.3 tools列表格式
+```yaml
+tools:  # 必须是YAML列表格式
+  - tools/tool1.yaml  # ⚠️ 注意前面的"- "
+  - tools/tool2.yaml  # 路径相对于插件根目录
+# ❌ 错误：tools: tools/tool1.yaml
+```
+
+#### 2. tool.yaml 完整配置
+
+##### 2.1 必需字段结构
+```yaml
+identity:
+  name: tool_name  # 工具标识名
+  author: author_name
+  label:
+    en_US: Tool Display Name
+    zh_Hans: 工具显示名称
+
+description:
+  human:  # 给用户看的友好描述
+    en_US: User-friendly description
+    zh_Hans: 用户友好的描述
+  llm: Precise description for AI. Explain when to use this tool.  # 给AI看的精确描述
+
+parameters:  # 参数列表
+  - name: param_name
+    type: string  # 9种类型之一（见下表）
+    required: true
+    form: llm  # ⚠️ 99%情况用llm（AI推理）
+    label:
+      en_US: Parameter Label
+    llm_description: Detailed info for AI to understand this parameter
+    # 其他可选字段见下文
+
+extra:  # ⚠️ 每个tool文件都需要！
+  python:
+    source: tools/tool_name.py
+```
+
+##### 2.2 参数类型完整列表
+| type值 | 说明 | 使用场景 |
+|--------|------|----------|
+| string | 字符串 | 普通文本输入 |
+| number | 数字 | 数值输入（可设min/max） |
+| boolean | 布尔值 | 是/否选择 |
+| select | 下拉选择 | 需要options字段 |
+| secret-input | 加密输入 | API密钥等敏感信息 |
+| file | 单文件 | 文件上传 |
+| files | 多文件 | 批量文件上传 |
+| model-selector | 模型选择 | 选择AI模型 |
+| app-selector | 应用选择 | 选择Dify应用 |
+
+##### 2.3 form字段说明
+```yaml
+form: llm    # AI推理参数（最常用）
+# form: form  # 用户预设参数（少用）
+
+# 在Agent应用中：
+# - llm: 参数由AI推理得出
+# - form: 参数可以预设使用
+
+# 在Workflow应用中：
+# - 两种都需要前端填写
+# - llm参数会作为工具节点的输入变量
+```
+
+##### 2.4 完整参数配置示例
+```yaml
+parameters:
+  - name: query
+    type: string
+    required: true
+    form: llm
+    label:
+      en_US: Search Query
+      zh_Hans: 搜索关键词
+    human_description:  # 前端显示的说明
+      en_US: Keywords to search
+      zh_Hans: 要搜索的关键词
+    llm_description: Search keywords, be specific  # AI理解的说明
+    placeholder:  # 仅当form:form且type是string/number/secret-input时有效
+      en_US: Enter keywords...
+    
+  - name: limit
+    type: number
+    required: false
+    form: llm
+    default: 10
+    min: 1        # 数字类型专用
+    max: 100      # 有min/max时会显示滑块
+    label:
+      en_US: Result Limit
+      
+  - name: sort_by
+    type: select
+    required: false
+    form: llm
+    default: relevance
+    options:      # select类型必需
+      - value: relevance
+        label:
+          en_US: Relevance
+          zh_Hans: 相关性
+      - value: date
+        label:
+          en_US: Date
+          zh_Hans: 日期
+```
+
+##### 2.5 输出变量定义（可选）
+```yaml
+output_schema:  # 定义工具输出的变量结构
+  type: object
+  properties:
+    results:
+      type: array
+      items:
+        type: object
+        properties:
+          title:
+            type: string
+          url:
+            type: string
+    total_count:
+      type: number
+```
+
+#### 3. manifest.yaml 易错配置
+
+##### 3.1 版本字段出现两次
+```yaml
+version: 0.1.0  # 插件版本（顶层）
+# ...其他配置...
+meta:
+  version: 0.0.1  # ⚠️ manifest格式版本，固定0.0.1
+```
+
+##### 3.2 plugins配置指向
+```yaml
+plugins:
+  tools:  # ⚠️ 指向provider yaml，不是tool yaml！
+    - provider/provider_name.yaml
+  # models:
+  #   - provider/model_provider.yaml
+  # endpoints:
+  #   - provider/endpoint_provider.yaml
+```
+
+##### 3.3 时间格式和其他细节
+```yaml
+created_at: '2024-08-07T08:03:44.658609186Z'  # RFC3339格式，注意引号
+type: plugin  # 固定值
+meta:
+  runner:
+    language: python
+    version: '3.12'  # ⚠️ 现在支持3.12了
+    entrypoint: main  # Python固定为main
+```
+
+#### 4. 通用配置规则
+
+##### 4.1 国际化语言代码（IETF BCP 47）
+- ✅ `en_US`（不是en或en-US）
+- ✅ `zh_Hans`（不是zh_CN或zh）  
+- ✅ `ja_JP`（不是ja_Jp或ja）
+- ✅ `pt_BR`（巴西葡萄牙语）
+
+##### 4.2 provider配置type完整列表
+| type值 | 说明 | 使用场景 |
+|--------|------|----------|
+| secret-input | 加密输入 | API密钥、密码、token |
+| text-input | 明文输入 | 普通文本、路径 |
+| select | 下拉框 | 预定义选项 |
+| boolean | 开关 | 是/否选择 |
+| model-selector | 模型选择器 | 选择AI模型（可设scope） |
+| app-selector | 应用选择器 | 选择Dify应用 |
+| tool-selector | 工具选择器 | 选择工具 |
+| dataset-selector | 数据集选择器 | （待定） |
+
+##### 4.3 路径规则
+- 所有路径都相对于插件根目录
+- 使用正斜杠`/`（不是反斜杠）
+- 不需要`./`前缀
+- 多媒体文件放在`_assets/`目录
+
+#### 5. 快速检查清单
+
+写完配置后逐项检查：
+- [ ] provider.yaml的`extra.python.source`路径正确？
+- [ ] 每个tool.yaml都有`extra.python.source`？
+- [ ] 所有`label`至少有`en_US`？
+- [ ] 语言代码拼写正确？（zh_Hans、ja_JP）
+- [ ] manifest的`plugins.tools`指向provider.yaml而非tool yaml？
+- [ ] tools列表每项前都有`- `（横杠加空格）？
+- [ ] 参数的`form`字段是"llm"（除非真需要预设）？
+- [ ] select类型参数有`options`字段？
+- [ ] number类型参数设置了合理的min/max？
+- [ ] 敏感信息使用`secret-input`而非`text-input`？
+
+#### 6. 常见错误示例
+
+```yaml
+# ❌ 错误：中文语言代码
+zh_CN: 中文名称  # 应该是zh_Hans
+
+# ❌ 错误：日文语言代码  
+ja_Jp: 日本語  # 应该是ja_JP（P大写）
+
+# ❌ 错误：tools不是列表
+tools: tools/tool.yaml  # 应该是 - tools/tool.yaml
+
+# ❌ 错误：manifest指向错误
+plugins:
+  tools:
+    - tools/search.yaml  # 应该指向provider yaml
+
+# ❌ 错误：普通文本用了加密类型
+database_path:
+  type: secret-input  # 路径应该用text-input
+```
+
+## 🛠️ 立即可用的代码片段
+
+### 创建新插件
+```bash
+dify plugin init --quick --name [name] --author [author] --type tool
+cd [name]
+tree -a
+```
+
+### 快速测试
+```bash
+python -m py_compile provider/*.py tools/*.py
+dify plugin package ./
+```
+
+### OAuth实现骨架
+```python
+class Provider(ToolProvider):
+    def _oauth_get_authorization_url(self, redirect_uri: str, 
+                                   system_credentials: Mapping[str, Any]) -> str:
+        params = {
+            "client_id": system_credentials["client_id"],
+            "redirect_uri": redirect_uri,
+            "scope": self._OAUTH_SCOPE,
+            "response_type": "code",
+            "state": secrets.token_urlsafe(16)
+        }
+        return f"{self._AUTH_URL}?{urllib.parse.urlencode(params)}"
+```
+
+## 📝 待填充信息模板
+
+当用户提出需求后，立即收集以下信息：
+
+### API调研清单
+- [ ] API文档URL：
+- [ ] 认证方式：
+- [ ] 速率限制：
+- [ ] 价格/免费tier：
+- [ ] SDK可用性：
+- [ ] 特殊要求：
+
+### 功能需求清单
+- [ ] 核心功能列表：
+- [ ] 用户使用场景：
+- [ ] 输入参数类型：
+- [ ] 输出数据格式：
+- [ ] 错误处理需求：
+
+### 实现进度跟踪
+- [ ] Provider配置
+- [ ] OAuth实现（如需要）
+- [ ] Tool 1: [名称]
+- [ ] Tool 2: [名称]
+- [ ] Tool 3: [名称]
+- [ ] 测试通过
+- [ ] 打包完成
+
+## 💡 开发策略
+
+1. **快速原型**：先实现一个最简单的工具，验证连通性
+2. **增量开发**：每个工具独立实现和测试
+3. **错误优先**：先处理各种错误情况，再优化正常流程
+4. **信息收集**：遇到任何有用信息立即记录到这里
+
+## 🎯 当前状态
+
+**等待用户输入具体需求...**
+
+准备好了，请告诉我：
+1. 你想集成什么服务/API？
+2. 需要实现哪些功能？
+3. 有什么特殊要求吗？
+
+---
+
+> 💭 记住：每个细节都要记录，每个错误都是经验，保持context完整性！
