@@ -3,6 +3,7 @@
 import asyncio
 import contextlib
 import os
+import re
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, ClassVar
@@ -101,11 +102,16 @@ class PersistentShell:
                     self.prompt_pattern = self.PROMPT_PATTERNS[index]
                     before = self.shell.before
                     if before:
+                        # 先清理控制字符
+                        before = before.replace('\r', '')
                         lines = before.split('\n')
                         # 跳过命令回显
-                        if not command_echo_skipped and lines and lines[0].strip() == command.strip():
-                            lines = lines[1:]
-                            command_echo_skipped = True
+                        if not command_echo_skipped and lines:
+                            # 清理第一行用于比较
+                            first_line_clean = ''.join(c for c in lines[0] if c.isprintable() or c in ' \t')
+                            if first_line_clean.strip() == command.strip():
+                                lines = lines[1:]
+                                command_echo_skipped = True
                         output_lines.extend(lines)
                     break
 
@@ -129,8 +135,11 @@ class PersistentShell:
                     # 新行
                     line = self.shell.before
                     if line:
+                        # 先清理控制字符
+                        line = line.replace('\r', '')
                         # 跳过命令回显
-                        if not command_echo_skipped and line.strip() == command.strip():
+                        line_clean = ''.join(c for c in line if c.isprintable() or c in ' \t\n')
+                        if not command_echo_skipped and line_clean.strip() == command.strip():
                             command_echo_skipped = True
                         else:
                             output_lines.append(line)
@@ -182,8 +191,34 @@ class PersistentShell:
         if self.logger:
             self.logger.logger.info(f"Command completed with exit code: {exit_code}")
 
+        # 清理输出
+        # 1. 移除命令回显行（第一行如果和命令相似）
+        if output_lines:
+            first_line = output_lines[0]
+            # 移除控制字符后比较
+            first_line_clean = ''.join(c for c in first_line if c.isprintable() or c in ' \t')
+            command_clean = ''.join(c for c in command if c.isprintable() or c in ' \t')
+            # 如果第一行包含命令或者与命令相似，则跳过
+            if (command_clean in first_line_clean or
+                first_line_clean.replace(' ', '') == command_clean.replace(' ', '')):
+                output_lines = output_lines[1:]
+
+        # 2. 移除最后的提示符行
+        if output_lines and '@' in output_lines[-1] and ':' in output_lines[-1]:
+            # 检查是否为提示符模式
+            last_line = output_lines[-1]
+            if re.match(r'^[^@]+@[^:]+:.*$', last_line):
+                output_lines = output_lines[:-1]
+
+        stdout = '\n'.join(output_lines)
+
+        # 3. 最终清理
+        stdout = stdout.replace('\r', '')
+        stdout = ''.join(c for c in stdout if c.isprintable() or c in '\n\t ')
+        stdout = stdout.strip()
+
         return {
-            'stdout': '\n'.join(output_lines).strip(),
+            'stdout': stdout,
             'stderr': '',  # pexpect 不分离 stderr
             'exit_code': exit_code,
             'cwd': str(self._get_current_dir())

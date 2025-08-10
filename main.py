@@ -2,7 +2,6 @@
 """FileSystem-based Agent 主程序"""
 
 import asyncio
-import json
 import os
 import sys
 from pathlib import Path
@@ -157,7 +156,11 @@ async def async_main() -> None:
                 print()  # 确保换行
 
             except Exception as e:
-                print(f"\n❌ 错误: {e}\n")
+                print(f"\n❌ 错误: {e}")
+                print("\n📋 详细堆栈信息：")
+                import traceback
+                traceback.print_exc()
+                print()  # 额外换行，保持输出美观
                 # 继续交互循环，不退出
 
     except KeyboardInterrupt:

@@ -1664,3 +1664,52 @@ class IncrementalOutputFormatter:
 - 在 `.env` 中配置：`ANTHROPIC_MODEL=claude-3-5-haiku-20241022`
 - 通过环境变量：`export ANTHROPIC_MODEL=claude-3-5-haiku-20241022`
 - 根据任务需求选择合适的模型（速度 vs 能力）
+
+## 18. 流式输出和 Shell 输出优化（已实现）
+
+### 背景
+
+用户反馈两个主要问题：
+1. Agent 输出大量空的或不完整的工具调用，影响可读性
+2. Shell 命令输出包含命令回显、控制字符和提示符等噪音
+
+### 问题分析
+
+1. **空工具调用问题**
+   - 原因：流式 API 在构建 JSON 时的每个中间状态都被输出
+   - 表现：一个工具调用显示 5-10 行中间状态
+
+2. **Shell 输出格式问题**
+   - 原因：输出包含了 `\r`、`\u0002` 等控制字符，以及命令回显和提示符
+   - 表现：输出不干净，包含系统元素
+
+### 解决方案
+
+1. **修复空工具调用**（`src/async_agent.py`）
+   - 删除 ContentBlockStart 时的 yield（第 318 行）
+   - 删除 InputJsonDelta 时的 yield（第 364 行）
+   - 只在 ContentBlockStop 时输出完整的工具调用
+
+2. **修复 Shell 输出**（`src/persistent_shell.py`）
+   - 提前清理控制字符（`\r`）
+   - 智能检测并移除命令回显
+   - 检测并移除末尾的提示符
+   - 最终清理确保输出干净
+
+### 效果
+
+修复前：
+```
+🔧 执行命令: 
+🔧 执行命令: {"command":
+🔧 执行命令: {"command": "echo 'Hello'"}
+输出: echo 'Hello W \rorld'\nHello World\nuser@host:~$
+```
+
+修复后：
+```
+🔧 执行命令: echo 'Hello World'
+输出: Hello World
+```
+
+用户体验得到显著改善，输出更加清晰专业。

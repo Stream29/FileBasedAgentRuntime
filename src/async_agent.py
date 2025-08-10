@@ -315,7 +315,7 @@ class AsyncAgentRuntime:
                             )
                         ],
                     )
-                    yield current_event
+                    # 不要在这里 yield，等到 ContentBlockStop 时再输出完整的工具调用
 
             if chunk_type == ChunkType.ContentBlockDelta:
                 content_block_type = chunk.delta.type
@@ -361,7 +361,7 @@ class AsyncAgentRuntime:
                                 if isinstance(last_content.input, str)
                                 else delta.partial_json
                             )
-                            yield current_event
+                            # 不要在这里 yield，等到工具调用完成时再输出
 
             if (
                 chunk_type == ChunkType.ContentBlockStop
@@ -423,7 +423,9 @@ class AsyncAgentRuntime:
     ) -> AsyncIterator[Event]:
         """Handle tool calls in streaming mode"""
         if not tool_uses:
+            # 返回空的异步生成器而不是 None
             return
+            yield  # 这行永远不会执行，但让函数成为生成器
 
         # Create tool result event
         tool_results = []
@@ -462,9 +464,11 @@ class AsyncAgentRuntime:
                     ToolResultContent(tool_use_id=tool_use.id, content=result_content)
                 )
             except Exception as e:
+                import traceback
+                error_msg = f"Tool execution error: {e!s}\n\n📋 详细堆栈信息：\n{traceback.format_exc()}"
                 tool_results.append(
                     ToolResultContent(
-                        tool_use_id=tool_use.id, content=f"Tool execution error: {e!s}"
+                        tool_use_id=tool_use.id, content=error_msg
                     )
                 )
 
