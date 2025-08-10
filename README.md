@@ -89,12 +89,14 @@ cp .env.example .env
 # 编辑 .env 文件，填入你的 API Key
 # ANTHROPIC_API_KEY=your_api_key_here
 # ANTHROPIC_API_BASE=https://api.anthropic.com  # 可选，使用自定义 API 端点
+# ANTHROPIC_MODEL=claude-3-5-sonnet-20241022   # 可选，选择不同的模型
 ```
 
 方法二：设置环境变量
 ```bash
 export ANTHROPIC_API_KEY=your_api_key_here
 export ANTHROPIC_API_BASE=https://api.anthropic.com  # 可选
+export ANTHROPIC_MODEL=claude-3-5-sonnet-20241022   # 可选
 ```
 
 ### 3. 运行 Agent

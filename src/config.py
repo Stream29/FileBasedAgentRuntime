@@ -41,9 +41,17 @@ class AgentConfig(BaseModel):
         # Get from environment with fallbacks
         api_key = os.getenv("ANTHROPIC_API_KEY")
         base_url = os.getenv("ANTHROPIC_API_BASE")
+        model = os.getenv("ANTHROPIC_MODEL")  # 新增：支持从环境变量配置模型
 
-        # Merge with provided kwargs
-        config_dict = {"api_key": api_key, "base_url": base_url, **kwargs}
+        # Build config dict from environment variables
+        config_dict = {"api_key": api_key, "base_url": base_url}
+        
+        # 如果环境变量中有模型配置，添加到 config_dict
+        if model:
+            config_dict["model"] = model
+            
+        # kwargs 优先级最高，覆盖环境变量的设置
+        config_dict.update(kwargs)
 
         return cls(**config_dict)
 

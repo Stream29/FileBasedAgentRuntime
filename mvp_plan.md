@@ -1630,3 +1630,37 @@ class IncrementalOutputFormatter:
    - 在 `clear` 命令时自动调用
 
 这个改进保持了开发阶段所需的详细信息，同时通过智能去重大大提升了输出的可读性。
+
+## 17. 模型配置支持（已实现）
+
+### 背景
+
+之前模型选择硬编码在 `src/config.py` 中，用户无法灵活切换不同的 Claude 模型。
+
+### 解决方案
+
+通过最小改动，支持从环境变量配置模型：
+
+1. **修改 `AgentConfig.from_env()`**：
+   ```python
+   model = os.getenv("ANTHROPIC_MODEL")
+   if model:
+       config_dict["model"] = model
+   ```
+
+2. **更新 `.env.example`**：
+   ```bash
+   # Optional: Model selection
+   # ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
+   ```
+
+3. **保持向后兼容**：
+   - 不设置时使用默认模型
+   - kwargs 优先级最高
+
+### 使用效果
+
+用户现在可以：
+- 在 `.env` 中配置：`ANTHROPIC_MODEL=claude-3-5-haiku-20241022`
+- 通过环境变量：`export ANTHROPIC_MODEL=claude-3-5-haiku-20241022`
+- 根据任务需求选择合适的模型（速度 vs 能力）
