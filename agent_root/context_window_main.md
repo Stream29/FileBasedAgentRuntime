@@ -1,75 +1,123 @@
 # Current Task
-使用 Dify CLI 重新创建计算器插件并准备打包
+学习如何开发带 OAuth 认证的 Dify tool 插件
 
 # Working Memory
-1. CLI 工具使用进展：
-- 已掌握 dify plugin init 的非交互式用法
-- 使用参数：--quick --category --name --author --description
-- 成功创建了基本项目结构
+1. **OAuth 插件核心架构**：
+   - Provider 层：负责 OAuth 流程实现（授权、token 交换、刷新）
+   - Tool 层：使用 OAuth token 调用 API
+   - 配置层：manifest.yaml 定义插件元信息，provider.yaml 定义 OAuth 配置
 
-2. 当前项目状态：
-- 位置：workspace/calculator/
-- 基础结构已生成：
-  ```
-  calculator/
-  ├── _assets/
-  │   └── icon.svg
-  ├── provider/
-  │   ├── calculator.py
-  │   └── calculator.yaml
-  ├── tools/
-  │   ├── calculator.py
-  │   └── calculator.yaml
-  ├── GUIDE.md
-  ├── PRIVACY.md
-  ├── README.md
-  ├── main.py
-  ├── manifest.yaml
-  └── requirements.txt
-  ```
+2. **OAuth 配置结构（provider.yaml）**：
+   ```yaml
+   oauth_schema:
+     client_schema:  # OAuth 客户端配置
+       - name: client_id
+         type: secret-input
+         required: true
+       - name: client_secret
+         type: secret-input
+         required: true
+     credentials_schema:  # 用户凭据配置
+       - name: access_token
+         type: secret-input
+       - name: refresh_token
+         type: secret-input
+   ```
 
-3. 配置文件状态：
-- manifest.yaml：基本配置已生成
-  - 版本：0.0.1
-  - 类型：tool plugin
-  - 作者：dify-agent
-  - 名称：calculator
-  - 描述：基本数学运算功能
-- provider/calculator.yaml：提供者配置已生成
-  - 定义了工具标识
-  - 关联了实现文件
-- tools/calculator.yaml：工具配置待完善
+3. **Provider 类必须实现的 OAuth 方法**：
+   - `_oauth_get_authorization_url()`: 生成授权 URL
+   - `_oauth_get_credentials()`: 用授权码交换 token
+   - `_oauth_refresh_credentials()`: 刷新 access token
+   - `_validate_credentials()`: 验证凭据有效性
 
-4. 之前实现的功能（需要迁移）：
-- 基础数学运算
-- 参数验证
-- 错误处理
-- 标准消息格式
+4. **OAuth 流程实现要点**：
+   - 使用 `secrets.token_urlsafe()` 生成 state 参数
+   - 设置 `access_type=offline` 获取 refresh_token
+   - 计算 token 过期时间 `expires_at`
+   - 返回 `ToolOAuthCredentials` 对象
+
+5. **Tool 中使用 OAuth**：
+   - 通过 `self.runtime.credentials` 获取 access_token
+   - 在 API 请求中使用 Bearer token：`Authorization: Bearer {access_token}`
+   - 处理 401/403 错误（token 失效或权限不足）
+
+6. **Google Calendar 插件示例架构**：
+   ```
+   google_calendar/
+   ├── manifest.yaml         # 插件元信息
+   ├── provider/
+   │   ├── google_calendar.yaml  # OAuth 配置
+   │   └── google_calendar.py    # OAuth 实现
+   └── tools/
+       ├── list_events.yaml      # 工具配置
+       └── list_events.py        # 工具实现
+   ```
 
 # Active Observations
-1. CLI 工具生成的项目结构完整规范
-2. 配置文件包含了必要的基础信息
-3. 需要将之前的功能代码迁移到新结构中
-4. 完善后即可进行打包测试
+1. **Dify 插件开发模式**：
+   - Tool Plugin 是最常见的插件类型，用于扩展应用能力
+   - 一个 Provider 可包含多个 Tools
+   - 支持多种认证方式：API Key、OAuth 2.0、自定义凭据
+
+2. **OAuth 2.0 实现细节**：
+   - **授权 URL 参数**：client_id, redirect_uri, scope, response_type=code, access_type=offline
+   - **Token 交换**：POST 请求到 token_url，包含 client_id, client_secret, code, grant_type=authorization_code
+   - **Token 刷新**：使用 refresh_token 获取新的 access_token
+   - **错误处理**：处理 OAuth 错误、网络错误、API 限制
+
+3. **插件权限系统**：
+   - 需要在 manifest.yaml 中声明所需权限
+   - 权限包括：tool, model, storage, endpoint 等
+   - OAuth 插件通常需要 tool 权限和 storage 权限
+
+4. **开发工具链**：
+   - `dify plugin init --quick` 快速创建插件
+   - Python 3.12+ 环境
+   - 远程调试支持（通过 .env 配置）
+   - `dify plugin package` 打包插件
+
+# Knowledge
+1. **Dify 插件系统核心概念**：
+   - Tool Plugin：外部工具类型插件，增强应用能力
+   - Provider：工具提供者，可包含多个具体工具
+   - Tool：具体功能实现
+   - Manifest：插件基本信息定义文件
+
+2. **配置文件规范**：
+   A. manifest.yaml 核心字段：
+   - version：版本号（major.minor.patch）
+   - type：插件类型（plugin/bundle）
+   - author：作者信息
+   - resource：资源限制配置
+   - plugins：功能定义文件列表
+   - meta：运行时配置
+   - privacy：隐私政策文件
+
+   B. provider.yaml 规范：
+   - identity：提供者基本信息
+   - credentials_for_provider：API Key 认证配置
+   - oauth_schema：OAuth 认证配置
+   - tools：包含的工具列表
+
+   C. tool.yaml 规范：
+   - identity：工具标识信息
+   - description：工具描述
+   - parameters：参数定义
+   - 返回类型：text/links/images/files/json/variables
+
+3. **OAuth 2.0 在 Dify 中的实现**：
+   - 支持标准 OAuth 2.0 流程
+   - 自动处理 token 刷新
+   - 提供 ToolOAuthCredentials 封装
+   - 支持自定义 scope 和权限
+
+4. **错误处理模式**：
+   - ToolProviderCredentialValidationError：凭据验证失败
+   - ToolProviderOAuthError：OAuth 流程错误
+   - 使用 try-except 捕获网络和 API 错误
 
 # Next Steps
-1. 检查并完善配置文件
-   - 补充完整的工具描述
-   - 添加必要的权限配置
-   - 设置适当的资源限制
-
-2. 迁移核心功能代码
-   - 从之前的实现中提取计算逻辑
-   - 适配新的项目结构
-   - 确保错误处理完善
-
-3. 编写测试用例
-   - 单元测试
-   - 集成测试
-   - 边界条件测试
-
-4. 准备打包和发布
-   - 完善文档
-   - 运行测试
-   - 使用 CLI 打包
-   - 验证打包结果
+1. 基于学到的知识创建一个带 OAuth 认证的插件
+2. 实现完整的 OAuth 流程（授权、token 交换、刷新）
+3. 添加错误处理和日志记录
+4. 测试插件的 OAuth 功能
